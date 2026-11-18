@@ -1,6 +1,0 @@
-Metadata-Version: 2.4
-Name: planos-pedidos
-Version: 0.2.0
-Summary: Pedidos e planos de corte dos vendedores num programa só
-Requires-Python: >=3.12
-Requires-Dist: PySide6
