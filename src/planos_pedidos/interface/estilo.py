@@ -50,6 +50,11 @@ QLineEdit, QComboBox {{ background: {campo}; border: 1px solid {borda}; border-r
 QLineEdit:focus, QComboBox:focus {{ border: 1px solid {foco}; }}
 QLineEdit[erro="true"] {{ border: 2px solid {erro}; }}
 QComboBox:hover {{ background: {mouse}; }}
+/* Seta moderna (ícone expand_more do Google), sem a caixinha separada do Windows. */
+QComboBox::drop-down {{ subcontrol-origin: padding; subcontrol-position: center right;
+                        width: 30px; border: none; background: transparent; }}
+QComboBox::down-arrow {{ image: url({seta}); width: 22px; height: 22px; }}
+QComboBox::down-arrow:on {{ image: url({seta_aberta}); }}
 QComboBox QAbstractItemView {{ background: {campo}; color: {texto}; border: 1px solid {borda};
     selection-background-color: {selecao}; selection-color: {texto}; outline: none; }}
 QListView#sugestoes {{ background: {campo}; color: {texto}; border: 1px solid {borda};
@@ -102,8 +107,27 @@ QToolTip {{ background: {campo}; color: {texto}; border: 1px solid {borda}; }}
 """
 
 
+def _arquivo_seta(cor: str, aberta: bool) -> str:
+    """O estilo do Qt só aceita imagem por arquivo: grava a seta na cor do tema numa pasta
+    temporária (aberta = virada para cima)."""
+    import tempfile
+    from pathlib import Path
+
+    from planos_pedidos.interface.icones import svg_colorido
+
+    svg = svg_colorido("expand_more", cor)
+    if aberta:
+        svg = svg.replace("<path ", '<path transform="rotate(180 480 -480)" ', 1)
+    pasta = Path(tempfile.gettempdir()) / "planos_pedidos_icones"
+    pasta.mkdir(exist_ok=True)
+    arquivo = pasta / f"seta_{'cima' if aberta else 'baixo'}_{cor.lstrip('#')}.svg"
+    arquivo.write_text(svg, encoding="utf-8")
+    return arquivo.as_posix()
+
+
 def aplicar_tema(nome: str) -> str:
     """Troca as cores de CORES e devolve a folha de estilo pronta."""
     CORES.clear()
     CORES.update(TEMAS[nome])
-    return ESTILO.format(**CORES)
+    return ESTILO.format(**CORES, seta=_arquivo_seta(CORES["dica"], False),
+                         seta_aberta=_arquivo_seta(CORES["dica"], True))
