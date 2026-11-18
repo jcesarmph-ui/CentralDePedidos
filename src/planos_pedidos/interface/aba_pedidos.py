@@ -96,8 +96,15 @@ class LinhaItem:
         self.prazo = CampoData()
         self.entrega1 = QLineEdit()
         self.entrega2 = QLineEdit()
-        self.falta = QLabel(objectName="falta")
-        self.falta_icone = QLabel()
+        # Falta: campo igual aos outros, só que calculado (não se digita).
+        self.falta = QLineEdit(objectName="falta")
+        self.falta.setReadOnly(True)
+        self.falta.setFocusPolicy(Qt.NoFocus)
+        self.falta.setAlignment(Qt.AlignRight)
+        self.falta.setMaximumWidth(125)
+        self.falta_check = self.falta.addAction(QIcon(), QLineEdit.LeadingPosition)
+        por_icone(self.falta_check, "check", "certo", CORES)
+        self.falta_check.setVisible(False)
         self.preco = QLineEdit()
         self.preco.setPlaceholderText("0,00")
         self.observacoes = QLineEdit()
@@ -105,13 +112,6 @@ class LinhaItem:
         por_icone(self.remover, "delete", "dica", CORES)
         self.remover.setToolTip("Tirar este item do pedido")
         self.remover.clicked.connect(lambda: ao_remover(self))
-
-        self.caixa_falta = QWidget()
-        lf = QHBoxLayout(self.caixa_falta)
-        lf.setContentsMargins(4, 0, 4, 0)
-        lf.addWidget(self.falta_icone)
-        lf.addWidget(self.falta)
-        lf.addStretch()
 
         # Larguras: números estreitos; Tipo cabe "Chapa"; Observações fica com o que sobra.
         self.codigo.setMinimumWidth(100)
@@ -129,7 +129,7 @@ class LinhaItem:
     def widgets(self) -> list[QWidget]:
         return [self.numero, self.codigo, self.tipo, self.espessura, self.largura,
                 self.comprimento, self.quantidade, self.prazo, self.entrega1, self.entrega2,
-                self.caixa_falta, self.preco, self.observacoes, self.remover]
+                self.falta, self.preco, self.observacoes, self.remover]
 
     def _tipo_mudou(self, texto: str) -> None:
         """Rolo não tem comprimento: o campo fica apagado."""
@@ -195,30 +195,24 @@ class LinhaItem:
         return item, invalidos
 
     def atualizar_falta(self) -> None:
-        """Falta calculada na hora; ✔ verde quando o item foi todo entregue."""
+        """Falta calculada na hora: vermelho enquanto falta; ✔ verde quando entregou tudo
+        (também quando passou da quantidade — aí mostra quanto passou, com "+")."""
         item, _ = self.ler()
         f = falta(item)
-        self.falta_icone.clear()
-        self.falta_icone.hide()
+        entregue = item_entregue(item)
+        self.falta_check.setVisible(entregue)
         if f is None:
-            self.falta.setText("")
-            self.falta.setObjectName("falta")
-            self.falta.setToolTip("")
-        elif item_entregue(item):
-            por_icone(self.falta_icone, "check", "certo", CORES)
-            self.falta_icone.show()
-            if f < 0:
-                self.falta.setText(f"{kg(-f)} a mais")
-                self.falta.setObjectName("falta_mais")
-                self.falta.setToolTip(f"Entregue tudo, com {kg(-f)} kg a mais que o pedido")
-            else:
-                self.falta.setText("0")
-                self.falta.setObjectName("falta_ok")
-                self.falta.setToolTip("Item todo entregue")
+            texto, estado, dica = "", "", ""
+        elif entregue:
+            texto = f"+{kg(-f)}" if f < 0 else "0"
+            estado = "ok"
+            dica = (f"Entregue tudo, com {kg(-f)} kg a mais que o pedido" if f < 0
+                    else "Item todo entregue")
         else:
-            self.falta.setText(kg(f))
-            self.falta.setObjectName("falta")
-            self.falta.setToolTip("Quantidade menos as entregas")
+            texto, estado, dica = kg(f), "falta", "Quantidade menos as entregas"
+        self.falta.setText(texto)
+        self.falta.setToolTip(dica)
+        self.falta.setProperty("estado", estado)
         self.falta.style().unpolish(self.falta)
         self.falta.style().polish(self.falta)
 
@@ -462,7 +456,12 @@ class AbaPedidos(QWidget):
         self.pesquisa.textChanged.connect(self.preencher)
         self.novo = botao("Novo pedido", "add", objeto="acao")
         self.novo.clicked.connect(self.novo_pedido)
+        self.atualizar = botao("Atualizar", "refresh")
+        self.atualizar.setToolTip("Buscar no banco os pedidos que os colegas lançaram "
+                                  "ou mudaram agora")
+        self.atualizar.clicked.connect(self.recarregar)
         topo.addWidget(self.pesquisa, 1)
+        topo.addWidget(self.atualizar)
         topo.addWidget(self.novo)
         geral.addLayout(topo)
 
@@ -472,6 +471,7 @@ class AbaPedidos(QWidget):
         self.tabela.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.tabela.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.tabela.setShowGrid(False)
+        self.tabela.setAlternatingRowColors(True)  # listras leves, como no Excel
         self.tabela.setMouseTracking(True)
         self.tabela.viewport().setCursor(Qt.PointingHandCursor)
         cab = self.tabela.horizontalHeader()

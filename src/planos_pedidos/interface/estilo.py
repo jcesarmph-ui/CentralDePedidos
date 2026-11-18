@@ -10,12 +10,14 @@ ESCURO = {
     "texto": "#e2e8f0", "dica": "#94a3b8", "destaque": "#60a5fa", "hoje": "#1d3a66",
     "mouse": "#334155", "selecao": "#1d3a66", "erro": "#ef5350", "aviso": "#ffd54f",
     "certo": "#66bb6a", "foco": "#60a5fa",
+    "listra": "#243247",
 }
 CLARO = {
     "fundo": "#f1f5f9", "caixa": "#ffffff", "campo": "#f8fafc", "borda": "#cbd5e1",
     "texto": "#0f172a", "dica": "#64748b", "destaque": "#2563eb", "hoje": "#dbeafe",
     "mouse": "#e2e8f0", "selecao": "#dbeafe", "erro": "#c62828", "aviso": "#8d6e00",
     "certo": "#2e7d32", "foco": "#2563eb",
+    "listra": "#f4f7fb",
 }
 TEMAS = {"escuro": ESCURO, "claro": CLARO}
 
@@ -73,7 +75,8 @@ QCalendarWidget QToolButton {{ color: {texto}; background: transparent; border: 
 QCalendarWidget QToolButton:hover {{ background: {mouse}; }}
 QCalendarWidget QMenu {{ background: {campo}; color: {texto}; }}
 QCalendarWidget QSpinBox {{ background: {campo}; color: {texto}; border: 1px solid {borda}; }}
-QTableWidget {{ background: {caixa}; border: none; gridline-color: {borda};
+QTableWidget {{ background: {caixa}; alternate-background-color: {listra};
+                border: none; gridline-color: {borda};
                 selection-background-color: {selecao}; selection-color: {texto}; }}
 QTableWidget::item {{ padding: 4px; }}
 QTableWidget::item:hover {{ background: {mouse}; }}
@@ -92,9 +95,9 @@ QMessageBox {{ background: {caixa}; }}
 #vendedor {{ font-weight: bold; }}
 #aviso {{ color: {aviso}; }}
 #erro {{ color: {erro}; }}
-#falta {{ font-weight: bold; }}
-#falta_ok {{ color: {certo}; font-weight: bold; }}
-#falta_mais {{ color: {aviso}; font-weight: bold; }}
+QLineEdit#falta {{ font-weight: bold; background: {caixa}; }}
+QLineEdit#falta[estado="ok"] {{ color: {certo}; }}
+QLineEdit#falta[estado="falta"] {{ color: {erro}; }}
 QToolTip {{ background: {campo}; color: {texto}; border: 1px solid {borda}; }}
 """
 

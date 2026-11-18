@@ -59,10 +59,30 @@ def test_falta_atualiza_sozinha_e_mostra_check(repo):
     linha = j.linhas[0]
     _preencher_item(linha, quantidade="5.000", e1="4.524")
     assert linha.falta.text() == "476"
+    assert linha.falta.property("estado") == "falta"  # vermelho
+    assert not linha.falta_check.isVisible()
     linha.entrega2.setText("476")
     assert linha.falta.text() == "0"
-    assert linha.falta.objectName() == "falta_ok"
-    assert not linha.falta_icone.isHidden()
+    assert linha.falta.property("estado") == "ok"  # verde
+    assert linha.falta_check.isVisible()
+    linha.entrega2.setText("1.476")  # passou da quantidade: continua o check
+    assert linha.falta.text() == "+1.000"
+    assert linha.falta.property("estado") == "ok"
+    assert linha.falta_check.isVisible()
+    assert linha.falta.isReadOnly()
+
+
+def test_atualizar_mostra_pedido_lancado_por_outro(janela, repo):
+    from planos_pedidos.regras.pedidos import Item, Pedido
+
+    aba = janela.aba_pedidos
+    assert aba.tabela.rowCount() == 0
+    repo.salvar_pedido(Pedido(datetime.date(2026, 11, 18), "Alfa Chapas", "2001", "MARIA",
+                              [Item(espessura=1, largura=100, quantidade=10,
+                                    prazo=datetime.date(2026, 11, 20))]))
+    aba.atualizar.click()
+    assert aba.tabela.rowCount() == 1
+    assert aba.tabela.alternatingRowColors()
 
 
 def test_rolo_desliga_comprimento(repo):
