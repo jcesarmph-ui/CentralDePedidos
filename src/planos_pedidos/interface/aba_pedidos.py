@@ -3,7 +3,7 @@
 import datetime
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QColor, QIcon
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QComboBox,
@@ -519,10 +519,6 @@ class AbaPedidos(QWidget):
                         f"{i.codigo}  {descricao(i)}  ·  {kg(i.quantidade)} kg  ·  "
                         f"{dinheiro(i.preco_kg)}/kg" for i in p.itens))
                 self.tabela.setItem(linha, col, celula)
-            cores = cores_do_prazo(prazo, entregue)
-            for col in (5, 6) if cores else ():
-                self.tabela.item(linha, col).setBackground(QColor(cores[0]))
-                self.tabela.item(linha, col).setForeground(QColor(cores[1]))
         self.tabela.setVisible(bool(self.pedidos))
         self.vazio.setVisible(not self.pedidos)
 
