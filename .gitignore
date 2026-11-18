@@ -1,0 +1,22 @@
+# Dados da empresa (nunca vão para o GitHub)
+dados/
+*.db
+*.xlsx
+*.xls
+*.png
+!docs/telas/*.png
+
+# Instruções locais do Claude Code
+CLAUDE.md
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Empacotamento
+build/
+dist/
+*.spec

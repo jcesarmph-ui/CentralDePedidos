@@ -1,0 +1,24 @@
+[project]
+name = "planos-pedidos"
+dynamic = ["version"]
+description = "Pedidos e planos de corte dos vendedores num programa só"
+requires-python = ">=3.12"
+dependencies = ["PySide6"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = { attr = "planos_pedidos.__version__" }
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
