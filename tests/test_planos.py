@@ -4,6 +4,7 @@ import pytest
 
 from planos_pedidos.regras.planos import (
     Plano,
+    entrega_tela,
     problemas_do_plano,
     quantidade_kg,
     quantidade_tela,
@@ -27,3 +28,10 @@ def test_problemas_do_plano():
     bom = Plano(data=hoje, cliente="Alfa Chapas", descricao="CHAPA 1,5 x 1200 x 3000",
                 quantidade="saldo total", entrega=hoje)
     assert problemas_do_plano(bom) == []
+
+
+def test_entrega_critica_na_tela():
+    plano = Plano(entrega=datetime.date(2026, 11, 19))
+    assert entrega_tela(plano) == "19/11/2026"
+    plano.critico = True
+    assert entrega_tela(plano) == "19/11/2026 - CRÍTICO"

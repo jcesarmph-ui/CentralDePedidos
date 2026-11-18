@@ -8,7 +8,7 @@ quando é número aparece formatado em kg.
 import datetime
 from dataclasses import dataclass
 
-from planos_pedidos.regras.formatos import kg, ler_numero
+from planos_pedidos.regras.formatos import data_tela, kg, ler_numero
 
 
 @dataclass
@@ -22,6 +22,7 @@ class Plano:
     quantidade: str = ""  # "2000", "1 un", "saldo total"…
     entrega: datetime.date | None = None
     observacoes: str = ""
+    critico: bool = False  # entrega crítica (na planilha: "12/08/2026 - CRITICO")
     vendedor: str = ""
     id: int | None = None
 
@@ -54,3 +55,9 @@ def problemas_do_plano(plano: Plano) -> list[str]:
     if plano.entrega is None:
         avisos.append("Falta a data de entrega.")
     return avisos
+
+
+def entrega_tela(plano: Plano) -> str:
+    """"19/11/2026" ou "19/11/2026 - CRÍTICO"."""
+    texto = data_tela(plano.entrega)
+    return f"{texto} - CRÍTICO" if plano.critico and texto else texto

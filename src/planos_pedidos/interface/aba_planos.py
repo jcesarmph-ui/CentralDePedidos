@@ -6,6 +6,7 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QAbstractItemView,
+    QCheckBox,
     QDialog,
     QGridLayout,
     QGroupBox,
@@ -31,7 +32,12 @@ from planos_pedidos.interface.componentes import (
 from planos_pedidos.interface.estilo import CORES
 from planos_pedidos.interface.icones import por_icone
 from planos_pedidos.regras.formatos import chave, data_tela
-from planos_pedidos.regras.planos import Plano, problemas_do_plano, quantidade_tela
+from planos_pedidos.regras.planos import (
+    Plano,
+    entrega_tela,
+    problemas_do_plano,
+    quantidade_tela,
+)
 
 
 def _rotulo(texto: str) -> QLabel:
@@ -82,10 +88,14 @@ class JanelaPlano(QDialog):
         self.dica_quantidade = RotuloAviso("dica")
         self.quantidade.textChanged.connect(self._mostrar_quantidade)
         self.entrega = CampoData()
+        self.critico = QCheckBox("Crítico")
+        self.critico.setToolTip('Marque quando a entrega for crítica (aparece "CRÍTICO" '
+                                "ao lado da data)")
+        self.entrega.layout().addWidget(self.critico)
         self.observacoes = QLineEdit()
 
         # Linha 1: data, cliente, item, lote, quem registrou
-        for col, texto in enumerate(["Data do plano", "Cliente", "Item", "Volume / lote",
+        for col, texto in enumerate(["Data do plano", "Cliente", "Código do item", "Volume / lote",
                                      "Registrado por"]):
             grade.addWidget(_rotulo(texto), 0, col)
         grade.addWidget(self.data, 1, 0)
@@ -138,6 +148,7 @@ class JanelaPlano(QDialog):
             self.quantidade.setText(p.quantidade)
             self.entrega.definir(p.entrega)
             self.observacoes.setText(p.observacoes)
+            self.critico.setChecked(p.critico)
 
     def _mostrar_quantidade(self) -> None:
         """Mostra embaixo como vai ficar: "2.000 kg" (só quando muda algo)."""
@@ -162,7 +173,8 @@ class JanelaPlano(QDialog):
                       bobina_mae=self.bobina.text().strip(),
                       quantidade=self.quantidade.text().strip(), entrega=datas["de entrega"],
                       observacoes=self.observacoes.text().strip(),
-                      vendedor=self.plano.vendedor, id=self.plano.id)
+                      critico=self.critico.isChecked(), vendedor=self.plano.vendedor,
+                      id=self.plano.id)
         problemas = [p for p in problemas_do_plano(plano)
                      if not any(i in p for i in invalidas)]
         return plano, avisos + problemas
@@ -190,7 +202,8 @@ class AbaPlanos(QWidget):
     """Lista de todos os planos de corte, com pesquisa; clicar na linha abre o plano."""
 
     mudou = Signal()
-    COLUNAS = ["Data", "Cliente", "Item", "Volume / lote", "Descrição do item", "Bobina mãe",
+    COLUNAS = ["Data", "Cliente", "Código do item", "Volume / lote", "Descrição do item",
+               "Bobina mãe",
                "Quantidade", "Entrega", "Observações", "Registrado por"]
 
     def __init__(self, repo: Repositorio, vendedor: str, parent=None) -> None:
@@ -255,7 +268,7 @@ class AbaPlanos(QWidget):
         self.tabela.setRowCount(len(self.visiveis))
         for linha, p in enumerate(self.visiveis):
             textos = [data_tela(p.data), p.cliente, p.item, p.lote, p.descricao, p.bobina_mae,
-                      quantidade_tela(p.quantidade), data_tela(p.entrega), p.observacoes,
+                      quantidade_tela(p.quantidade), entrega_tela(p), p.observacoes,
                       p.vendedor]
             for col, texto in enumerate(textos):
                 celula = QTableWidgetItem(texto)
