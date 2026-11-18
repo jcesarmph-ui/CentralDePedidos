@@ -516,7 +516,11 @@ class AbaPedidos(QWidget):
             self.mudou.emit()
 
     def abrir(self, linha: int) -> None:
-        pedido = self.repo.pedido(self.visiveis[linha].id)
+        self.abrir_id(self.visiveis[linha].id)
+
+    def abrir_id(self, pedido_id: int) -> None:
+        """Abre o pedido pelo número interno (usado também pela Agenda)."""
+        pedido = self.repo.pedido(pedido_id)
         if pedido is None:
             return
         janela = JanelaPedido(self.repo, self.vendedor, pedido, parent=self)
