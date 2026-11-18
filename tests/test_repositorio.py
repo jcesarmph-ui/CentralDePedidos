@@ -6,6 +6,7 @@ import pytest
 
 from planos_pedidos.dados.repositorio import Repositorio
 from planos_pedidos.regras.pedidos import Item, Pedido, Tipo
+from planos_pedidos.regras.planos import Plano
 
 HOJE = datetime.date(2026, 11, 18)
 
@@ -69,3 +70,16 @@ def test_numero_em_uso(repo):
     assert repo.numero_em_uso("1001")
     assert not repo.numero_em_uso("1001", ignorar_id=pid)
     assert not repo.numero_em_uso("9999")
+
+
+def test_salvar_e_editar_plano(repo):
+    plano = Plano(data=HOJE, cliente="Beta Metais", item="NOVO", lote="L-77",
+                  descricao="CHAPA 1,95 x 1200 x 3000", bobina_mae="20-99-001 - BOBINA TESTE",
+                  quantidade="saldo total", entrega=HOJE, vendedor="JOAO")
+    pid = repo.salvar_plano(plano)
+    lido = repo.plano(pid)
+    assert lido.quantidade == "saldo total" and lido.lote == "L-77" and lido.vendedor == "JOAO"
+    lido.quantidade = "2000"
+    repo.salvar_plano(lido, quem="MARIA")
+    assert repo.plano(pid).quantidade == "2000"
+    assert len(repo.planos()) == 1

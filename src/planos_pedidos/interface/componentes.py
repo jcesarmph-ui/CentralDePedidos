@@ -202,3 +202,29 @@ class RotuloAviso(QLabel):
     def mostrar(self, texto: str) -> None:
         self.setText(texto)
         self.setVisible(bool(texto))
+
+
+def texto_aviso_cliente(campo: "CampoComSugestoes") -> str:
+    """Aviso amarelo de cliente novo (vazio se o nome já existe ou ainda está sendo escolhido)."""
+    nome = campo.nome()
+    if not nome or campo.existente() or campo.filtradas():
+        return ""
+    parecidos = campo.parecidos()
+    texto = f"\"{nome}\" é um cliente novo: será cadastrado ao salvar."
+    if parecidos:
+        texto += f" Parece com: {', '.join(parecidos)}. Se for o mesmo, escolha na lista."
+    return texto
+
+
+def confirmar_cliente_novo(pai, nome: str) -> bool:
+    """Pergunta ao salvar: "Criar novo" ou "Voltar e escolher da lista"."""
+    from PySide6.QtWidgets import QMessageBox
+
+    caixa = QMessageBox(pai)
+    caixa.setWindowTitle("Cliente novo")
+    caixa.setText(f"\"{nome}\" ainda não está na lista de clientes.")
+    caixa.setInformativeText("Cadastrar como cliente novo?")
+    criar = caixa.addButton("Criar novo", QMessageBox.AcceptRole)
+    caixa.addButton("Voltar e escolher da lista", QMessageBox.RejectRole)
+    caixa.exec()
+    return caixa.clickedButton() is criar
