@@ -73,12 +73,12 @@ mindmap
       Filtro por vendedor
 ```
 
-## 🧭 UX: o programa é para outras pessoas
+## 🧭 UX: o programa é para os vendedores
 
-Diferente dos meus outros programas, que eu mesmo uso, este foi **pedido pelos vendedores** e será
-usado **100% por eles**. Por isso o desenvolvimento segue práticas de UX:
+O programa atende uma necessidade da **equipe de vendas** e é
+usado **100% pelos vendedores**. Por isso o desenvolvimento segue práticas de UX:
 
-- **Entrevista com quem usa** antes de desenhar qualquer tela (o que fazem, o que irrita, o que falta).
+- **Entrevista com quem usa** antes de desenhar qualquer tela (o que fazem, o que incomoda, o que falta).
 - **Protótipo rápido**: começar com a primeira entrevista e melhorar com a opinião dos demais.
 - **Escolha visual por foto**: três propostas de tema, cada uma em modo claro e escuro, comparadas
   lado a lado antes de virar código.
@@ -119,7 +119,7 @@ se alguém está editando um pedido, o colega vê quem é e espera.
 ## 🛠️ Como foi desenvolvido
 
 - Desenvolvimento **assistido por IA (Claude Code)**, uma etapa por vez, com branch e pull request.
-- **Testes automáticos** desde o primeiro dia; os testes nunca mexem nas preferências reais de quem roda.
+- **Testes automáticos** desde o primeiro dia; os testes nunca alteram as preferências reais de quem roda.
 - **Versionamento semântico**: `0.x` em desenvolvimento, `1.0.0` quando entrar em uso.
 - Dados reais da empresa ficam **fora do repositório**; exemplos usam nomes fictícios.
 
