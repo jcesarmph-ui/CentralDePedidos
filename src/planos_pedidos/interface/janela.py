@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
 from planos_pedidos import __version__
 from planos_pedidos.dados.repositorio import Repositorio
 from planos_pedidos.interface import preferencias
+from planos_pedidos.interface.aba_agenda import AbaAgenda
 from planos_pedidos.interface.aba_pedidos import AbaPedidos
 from planos_pedidos.interface.aba_planos import AbaPlanos
 from planos_pedidos.interface.componentes import instalar_filtro_roda
@@ -74,7 +75,13 @@ class JanelaPrincipal(QMainWindow):
         self.abas.setIconSize(QSize(22, 22))
         self.aba_pedidos = AbaPedidos(repo, self.vendedor)
         self.aba_planos = AbaPlanos(repo, self.vendedor)
-        self.abas.addTab(_em_construcao("Agenda"), ABAS[0][0])
+        self.aba_agenda = AbaAgenda(repo)
+        # A Agenda abre pedidos/planos pelas outras abas e se redesenha quando algo é salvo.
+        self.aba_agenda.abrir_pedido.connect(self.aba_pedidos.abrir_id)
+        self.aba_agenda.abrir_plano.connect(self.aba_planos.abrir_id)
+        self.aba_pedidos.mudou.connect(self.aba_agenda.recarregar)
+        self.aba_planos.mudou.connect(self.aba_agenda.recarregar)
+        self.abas.addTab(self.aba_agenda, ABAS[0][0])
         self.abas.addTab(self.aba_pedidos, ABAS[1][0])
         self.abas.addTab(self.aba_planos, ABAS[2][0])
         geral.addWidget(self.abas)
@@ -99,3 +106,4 @@ class JanelaPrincipal(QMainWindow):
         self.pintar_icones()
         self.aba_pedidos.preencher()
         self.aba_planos.preencher()
+        self.aba_agenda.desenhar()

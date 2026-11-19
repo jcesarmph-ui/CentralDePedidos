@@ -290,6 +290,10 @@ class AbaPlanos(QWidget):
         self._abrir_janela(None)
 
     def abrir(self, linha: int) -> None:
-        plano = self.repo.plano(self.visiveis[linha].id)
+        self.abrir_id(self.visiveis[linha].id)
+
+    def abrir_id(self, plano_id: int) -> None:
+        """Abre o plano pelo número interno (usado também pela Agenda)."""
+        plano = self.repo.plano(plano_id)
         if plano is not None:
             self._abrir_janela(plano)

@@ -175,3 +175,37 @@ def test_aba_planos_lista_e_atualiza(janela, repo):
     aba.atualizar.click()
     assert aba.tabela.rowCount() == 1
     assert aba.tabela.item(0, 6).text() == "saldo total"
+
+
+def test_agenda_mostra_etiquetas_e_abre_o_pedido(janela, repo, monkeypatch):
+    from planos_pedidos.interface.aba_agenda import Etiqueta, QuadradoDia
+    from planos_pedidos.regras.pedidos import Item, Pedido
+
+    hoje = datetime.date.today()
+    pid = repo.salvar_pedido(Pedido(hoje, "Alfa Chapas", "3001", "JOAO", [
+        Item(espessura=1, largura=100, quantidade=500, prazo=hoje)]))
+    agenda = janela.aba_agenda
+    agenda.atualizar.click()
+    quadrados = [agenda.grade.itemAt(i).widget() for i in range(agenda.grade.count())]
+    do_dia = [q for q in quadrados if isinstance(q, QuadradoDia) and q.dia == hoje][0]
+    etiquetas = do_dia.findChildren(Etiqueta)
+    assert len(etiquetas) == 1 and "3001" in etiquetas[0].texto
+    abertos = []
+    monkeypatch.setattr(janela.aba_pedidos, "abrir_id", abertos.append)
+    agenda.abrir_pedido.disconnect()
+    agenda.abrir_pedido.connect(janela.aba_pedidos.abrir_id)
+    etiquetas[0].click()
+    assert abertos == [pid]
+    # Lateral: vence hoje → aparece nos próximos 7 dias
+    lado = agenda.lista_lado.findChildren(Etiqueta)
+    assert any("3001" in e.texto for e in lado)
+
+
+def test_agenda_navega_entre_meses(janela):
+    agenda = janela.aba_agenda
+    hoje = datetime.date.today()
+    for _ in range(12):
+        agenda.proximo.click()
+    assert (agenda.ano, agenda.mes) == (hoje.year + 1, hoje.month)
+    agenda.botao_hoje.click()
+    assert (agenda.ano, agenda.mes) == (hoje.year, hoje.month)

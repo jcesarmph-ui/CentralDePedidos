@@ -103,6 +103,26 @@ QMessageBox {{ background: {caixa}; }}
 QLineEdit#falta {{ font-weight: bold; background: {caixa}; }}
 QLineEdit#falta[estado="ok"] {{ color: {certo}; }}
 QLineEdit#falta[estado="falta"] {{ color: {erro}; }}
+/* Agenda */
+#painel_lado {{ background: {campo}; border: 1px solid {borda}; border-radius: 10px; }}
+#dia {{ background: {caixa}; border: 1px solid {borda}; border-radius: 8px; }}
+#dia:hover {{ border: 1px solid {foco}; }}
+#dia_fora {{ background: {fundo}; border: 1px solid {borda}; border-radius: 8px; }}
+#diahoje {{ background: {hoje}; border: 2px solid {destaque}; border-radius: 8px; }}
+#num_dia {{ font-weight: bold; font-size: 11pt; }}
+#dia_fora QLabel#num_dia {{ color: {dica}; }}
+#num_hoje {{ font-weight: bold; font-size: 11pt; color: {destaque}; }}
+#kg_dia {{ color: {dica}; font-size: 9pt; }}
+#mes {{ font-size: 17pt; font-weight: bold; padding-left: 10px; }}
+#semana {{ color: {dica}; font-weight: bold; font-size: 10pt; }}
+#legenda {{ color: {dica}; font-size: 10pt; }}
+QPushButton#etiqueta {{ text-align: left; padding: 2px 6px; border-radius: 4px;
+                        font-size: 10pt; }}
+QPushButton#mais {{ background: transparent; border: none; color: {destaque};
+                    font-size: 10pt; padding: 0 6px; }}
+QPushButton#mais:hover {{ text-decoration: underline; }}
+QLabel#secao {{ font-weight: bold; font-size: 11pt; padding: 6px 0 2px 0; }}
+QToolButton#nav {{ padding: 3px; }}
 QCheckBox {{ spacing: 8px; }}
 QCheckBox::indicator {{ width: 18px; height: 18px; border: 1px solid {borda};
                        border-radius: 4px; background: {campo}; }}
