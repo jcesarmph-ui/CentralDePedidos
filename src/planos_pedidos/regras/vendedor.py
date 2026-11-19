@@ -5,7 +5,12 @@ usuário em 2026-11-18: o mais prático possível).
 """
 
 import getpass
+import os
 import re
+import socket
+
+# Quem aparece no filtro "Registrado por" (protótipo: só as duas vendedoras).
+VENDEDORES = ("ANA", "CARLOS")
 
 # Separadores que aparecem nos logins: ponto, sublinhado, hífen, espaço.
 _SEPARADORES = re.compile(r"[._\-\s]+")
@@ -28,8 +33,28 @@ def primeiro_nome(usuario: str) -> str:
 
 
 def vendedor_atual() -> str:
-    """Primeiro nome de quem está usando este PC agora."""
+    """Primeiro nome de quem está usando este PC agora.
+
+    `PLANOS_PEDIDOS_USUARIO` troca o nome (usado na demonstração, para abrir "como" uma das
+    vendedoras)."""
+    if os.environ.get("PLANOS_PEDIDOS_USUARIO"):
+        return primeiro_nome(os.environ["PLANOS_PEDIDOS_USUARIO"])
     try:
         return primeiro_nome(getpass.getuser())
     except Exception:  # sem usuário identificável: melhor vazio do que travar o programa
         return ""
+
+
+def nome_pc() -> str:
+    """Nome do computador (aparece no aviso de quem está editando)."""
+    try:
+        return socket.gethostname().upper()
+    except Exception:
+        return ""
+
+
+def filtrar_por_vendedor(registros: list, vendedor: str) -> list:
+    """Só os registrados por `vendedor` (vazio = todos). Qualquer objeto com `.vendedor`."""
+    if not vendedor:
+        return list(registros)
+    return [r for r in registros if r.vendedor.upper() == vendedor.upper()]

@@ -1,8 +1,9 @@
 """Janela principal: cabeçalho e as 3 abas (Agenda, Pedidos, Planos de corte)."""
 
-from PySide6.QtCore import QSize, Qt
+from PySide6.QtCore import QSize, Qt, QTimer
 from PySide6.QtWidgets import (
     QApplication,
+    QComboBox,
     QHBoxLayout,
     QLabel,
     QMainWindow,
@@ -16,12 +17,13 @@ from planos_pedidos import __version__
 from planos_pedidos.dados.repositorio import Repositorio
 from planos_pedidos.interface import preferencias
 from planos_pedidos.interface.aba_agenda import AbaAgenda
+from planos_pedidos.interface.aba_lixeira import AbaLixeira
 from planos_pedidos.interface.aba_pedidos import AbaPedidos
 from planos_pedidos.interface.aba_planos import AbaPlanos
-from planos_pedidos.interface.componentes import instalar_filtro_roda
+from planos_pedidos.interface.componentes import RotuloAviso, instalar_filtro_roda
 from planos_pedidos.interface.estilo import CORES, aplicar_tema
 from planos_pedidos.interface.icones import icone, repintar
-from planos_pedidos.regras.vendedor import vendedor_atual
+from planos_pedidos.regras.vendedor import VENDEDORES, vendedor_atual
 
 TITULO = "PLANOS E PEDIDOS"  # provisório: o nome definido ainda não foi escolhido
 
@@ -29,7 +31,9 @@ ABAS = [  # (texto, ícone) — ícones aprovados por foto
     ("Agenda", "calendar_month"),
     ("Pedidos", "receipt_long"),
     ("Planos de corte", "content_cut"),
+    ("Lixeira", "delete"),
 ]
+TODOS = "Todos"
 
 
 def _em_construcao(texto: str) -> QWidget:
@@ -62,20 +66,42 @@ class JanelaPrincipal(QMainWindow):
         self.botao_tema.setCursor(Qt.PointingHandCursor)
         self.botao_tema.clicked.connect(self.trocar_tema)
         titulo = QLabel(TITULO, objectName="titulo")
+        # Filtro "Registrado por": vale para todas as abas de uma vez.
+        self.rotulo_filtro = QLabel(objectName="rotulo_filtro")
+        self.filtro = QComboBox()
+        self.filtro.addItems([TODOS, *VENDEDORES])
+        self.filtro.setToolTip("Mostrar só o que foi registrado por uma pessoa")
+        self.filtro.setMinimumWidth(150)
+        self.filtro.currentTextChanged.connect(self.filtrar)
         canto = QLabel(f"{self.vendedor}   ·   v{__version__}", objectName="canto")
         canto.setToolTip("Quem está usando (nome do usuário do Windows) e a versão do programa")
         topo.addWidget(self.botao_tema)
+        topo.addSpacing(12)
+        topo.addWidget(self.rotulo_filtro)
+        topo.addWidget(QLabel("Registrado por", objectName="rotulo"))
+        topo.addWidget(self.filtro)
         topo.addStretch()
         topo.addWidget(titulo)
         topo.addStretch()
         topo.addWidget(canto)
         geral.addLayout(topo)
+        # Aviso amarelo (ex.: "ANA está mexendo neste pedido agora"); some sozinho.
+        self.aviso = RotuloAviso("aviso_topo")
+        self.apagar_aviso = QTimer(self, singleShot=True, interval=10_000)
+        self.apagar_aviso.timeout.connect(lambda: self.aviso.mostrar(""))
+        geral.addWidget(self.aviso)
 
         self.abas = QTabWidget()
         self.abas.setIconSize(QSize(22, 22))
         self.aba_pedidos = AbaPedidos(repo, self.vendedor)
         self.aba_planos = AbaPlanos(repo, self.vendedor)
         self.aba_agenda = AbaAgenda(repo)
+        self.aba_lixeira = AbaLixeira(repo)
+        for aba in (self.aba_pedidos, self.aba_planos):
+            aba.avisar.connect(self.mostrar_aviso)
+            aba.mudou.connect(self.aba_lixeira.recarregar)
+        for aba in (self.aba_pedidos, self.aba_planos, self.aba_agenda):
+            self.aba_lixeira.mudou.connect(aba.recarregar)
         # A Agenda abre pedidos/planos pelas outras abas e se redesenha quando algo é salvo.
         self.aba_agenda.abrir_pedido.connect(self.aba_pedidos.abrir_id)
         self.aba_agenda.abrir_plano.connect(self.aba_planos.abrir_id)
@@ -84,13 +110,28 @@ class JanelaPrincipal(QMainWindow):
         self.abas.addTab(self.aba_agenda, ABAS[0][0])
         self.abas.addTab(self.aba_pedidos, ABAS[1][0])
         self.abas.addTab(self.aba_planos, ABAS[2][0])
+        self.abas.addTab(self.aba_lixeira, ABAS[3][0])
         geral.addWidget(self.abas)
 
         self.pintar_icones()
 
+    def mostrar_aviso(self, texto: str) -> None:
+        self.aviso.mostrar(texto)
+        self.apagar_aviso.start()
+
+    def filtrar(self, texto: str) -> None:
+        nome = "" if texto == TODOS else texto
+        for aba in (self.aba_agenda, self.aba_pedidos, self.aba_planos, self.aba_lixeira):
+            aba.filtro_vendedor = nome
+        self.aba_agenda.desenhar()
+        self.aba_pedidos.preencher()
+        self.aba_planos.preencher()
+        self.aba_lixeira.preencher()
+
     def pintar_icones(self) -> None:
         for i, (_, nome) in enumerate(ABAS):
             self.abas.setTabIcon(i, icone(nome, CORES["destaque"]))
+        self.rotulo_filtro.setPixmap(icone("person", CORES["dica"]).pixmap(22, 22))
         # O botão mostra para onde vai: no escuro, o sol (ir para o claro), e vice-versa.
         vai_para = "claro" if self.tema == "escuro" else "escuro"
         self.botao_tema.setIcon(icone("light_mode" if vai_para == "claro" else "dark_mode",
@@ -107,3 +148,4 @@ class JanelaPrincipal(QMainWindow):
         self.aba_pedidos.preencher()
         self.aba_planos.preencher()
         self.aba_agenda.desenhar()
+        self.aba_lixeira.preencher()
