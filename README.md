@@ -73,10 +73,10 @@ mindmap
       Filtro por vendedor
 ```
 
-## 🧭 UX: o programa é para outras pessoas
+## 🧭 UX: o programa é para os vendedores
 
-Diferente dos meus outros programas, que eu mesmo uso, este foi **pedido pelos vendedores** e será
-usado **100% por eles**. Por isso o desenvolvimento segue práticas de UX:
+O programa atende uma necessidade da **equipe de vendas** e é
+usado **100% pelos vendedores**. Por isso o desenvolvimento segue práticas de UX:
 
 - **Entrevista com quem usa** antes de desenhar qualquer tela (o que fazem, o que irrita, o que falta).
 - **Protótipo rápido**: começar com a primeira entrevista e melhorar com a opinião dos demais.
