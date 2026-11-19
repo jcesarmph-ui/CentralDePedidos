@@ -16,3 +16,7 @@ O SVG fica como foi baixado (preto); o programa pinta na cor do tema ao carregar
 | `schedule.svg` | Etiqueta de prazo atrasado |
 | `check.svg` | Item entregue (falta zerada) |
 | `light_mode.svg`, `dark_mode.svg` | Botão de trocar entre modo claro e escuro |
+| `delete.svg` | Aba Lixeira; botão Excluir |
+| `restore_from_trash.svg` | Botão Restaurar (Lixeira) |
+| `delete_forever.svg` | Botão Excluir de vez (Lixeira) |
+| `person.svg` | Filtro "Registrado por" |

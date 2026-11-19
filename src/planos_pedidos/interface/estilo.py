@@ -99,6 +99,7 @@ QMessageBox {{ background: {caixa}; }}
 #cabecalho_itens {{ color: {dica}; font-size: 11pt; font-weight: bold; }}
 #vendedor {{ font-weight: bold; }}
 #aviso {{ color: {aviso}; }}
+#aviso_topo {{ color: {aviso}; font-weight: bold; padding: 4px 0; }}
 #erro {{ color: {erro}; }}
 QLineEdit#falta {{ font-weight: bold; background: {caixa}; }}
 QLineEdit#falta[estado="ok"] {{ color: {certo}; }}

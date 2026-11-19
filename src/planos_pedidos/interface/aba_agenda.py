@@ -34,6 +34,7 @@ from planos_pedidos.regras.agenda import (
     semanas_do_mes,
 )
 from planos_pedidos.regras.formatos import data_tela, kg
+from planos_pedidos.regras.vendedor import filtrar_por_vendedor
 
 MESES = ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO",
          "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"]
@@ -181,6 +182,7 @@ class AbaAgenda(QWidget):
         hoje = datetime.date.today()
         self.ano, self.mes = hoje.year, hoje.month
         self.eventos: list[Evento] = []
+        self.filtro_vendedor = ""  # "" = todos
 
         geral = QHBoxLayout(self)
         geral.setContentsMargins(14, 14, 14, 14)
@@ -272,7 +274,8 @@ class AbaAgenda(QWidget):
             tipos.add(Tipo.PEDIDO)
         if self.ver_planos.isChecked():
             tipos.add(Tipo.PLANO)
-        return [e for e in self.eventos if e.tipo in tipos]
+        return [e for e in filtrar_por_vendedor(self.eventos, self.filtro_vendedor)
+                if e.tipo in tipos]
 
     # ------------------------------------------------------------------ desenho
     def desenhar(self) -> None:
