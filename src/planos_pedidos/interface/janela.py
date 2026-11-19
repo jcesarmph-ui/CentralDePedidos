@@ -16,6 +16,7 @@ from planos_pedidos import __version__
 from planos_pedidos.dados.repositorio import Repositorio
 from planos_pedidos.interface import preferencias
 from planos_pedidos.interface.aba_pedidos import AbaPedidos
+from planos_pedidos.interface.aba_planos import AbaPlanos
 from planos_pedidos.interface.componentes import instalar_filtro_roda
 from planos_pedidos.interface.estilo import CORES, aplicar_tema
 from planos_pedidos.interface.icones import icone, repintar
@@ -72,9 +73,10 @@ class JanelaPrincipal(QMainWindow):
         self.abas = QTabWidget()
         self.abas.setIconSize(QSize(22, 22))
         self.aba_pedidos = AbaPedidos(repo, self.vendedor)
+        self.aba_planos = AbaPlanos(repo, self.vendedor)
         self.abas.addTab(_em_construcao("Agenda"), ABAS[0][0])
         self.abas.addTab(self.aba_pedidos, ABAS[1][0])
-        self.abas.addTab(_em_construcao("Planos de corte"), ABAS[2][0])
+        self.abas.addTab(self.aba_planos, ABAS[2][0])
         geral.addWidget(self.abas)
 
         self.pintar_icones()
@@ -96,3 +98,4 @@ class JanelaPrincipal(QMainWindow):
         repintar(CORES)
         self.pintar_icones()
         self.aba_pedidos.preencher()
+        self.aba_planos.preencher()

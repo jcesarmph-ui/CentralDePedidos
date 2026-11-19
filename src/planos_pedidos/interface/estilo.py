@@ -103,6 +103,12 @@ QMessageBox {{ background: {caixa}; }}
 QLineEdit#falta {{ font-weight: bold; background: {caixa}; }}
 QLineEdit#falta[estado="ok"] {{ color: {certo}; }}
 QLineEdit#falta[estado="falta"] {{ color: {erro}; }}
+QCheckBox {{ spacing: 8px; }}
+QCheckBox::indicator {{ width: 18px; height: 18px; border: 1px solid {borda};
+                       border-radius: 4px; background: {campo}; }}
+QCheckBox::indicator:hover {{ border: 1px solid {foco}; }}
+QCheckBox::indicator:checked {{ background: {destaque}; border: 1px solid {destaque};
+                               image: url({check_branco}); }}
 QToolTip {{ background: {campo}; color: {texto}; border: 1px solid {borda}; }}
 """
 
@@ -125,9 +131,24 @@ def _arquivo_seta(cor: str, aberta: bool) -> str:
     return arquivo.as_posix()
 
 
+def _arquivo_icone(nome: str, cor: str) -> str:
+    """Ícone na cor pedida gravado num arquivo (o estilo do Qt só aceita imagem por arquivo)."""
+    import tempfile
+    from pathlib import Path
+
+    from planos_pedidos.interface.icones import svg_colorido
+
+    pasta = Path(tempfile.gettempdir()) / "planos_pedidos_icones"
+    pasta.mkdir(exist_ok=True)
+    arquivo = pasta / f"{nome}_{cor.lstrip('#')}.svg"
+    arquivo.write_text(svg_colorido(nome, cor), encoding="utf-8")
+    return arquivo.as_posix()
+
+
 def aplicar_tema(nome: str) -> str:
     """Troca as cores de CORES e devolve a folha de estilo pronta."""
     CORES.clear()
     CORES.update(TEMAS[nome])
-    return ESTILO.format(**CORES, seta=_arquivo_seta(CORES["dica"], False),
+    return ESTILO.format(**CORES, check_branco=_arquivo_icone("check", "#ffffff"),
+                         seta=_arquivo_seta(CORES["dica"], False),
                          seta_aberta=_arquivo_seta(CORES["dica"], True))

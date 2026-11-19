@@ -6,6 +6,7 @@ import pytest
 
 from planos_pedidos.dados.repositorio import Repositorio
 from planos_pedidos.regras.pedidos import Item, Pedido, Tipo
+from planos_pedidos.regras.planos import Plano
 
 HOJE = datetime.date(2026, 11, 18)
 
@@ -69,3 +70,39 @@ def test_numero_em_uso(repo):
     assert repo.numero_em_uso("1001")
     assert not repo.numero_em_uso("1001", ignorar_id=pid)
     assert not repo.numero_em_uso("9999")
+
+
+def test_salvar_e_editar_plano(repo):
+    plano = Plano(data=HOJE, cliente="Beta Metais", item="NOVO", lote="L-77",
+                  descricao="CHAPA 1,95 x 1200 x 3000", bobina_mae="20-99-001 - BOBINA TESTE",
+                  quantidade="saldo total", entrega=HOJE, vendedor="JOAO")
+    pid = repo.salvar_plano(plano)
+    lido = repo.plano(pid)
+    assert lido.quantidade == "saldo total" and lido.lote == "L-77" and lido.vendedor == "JOAO"
+    lido.quantidade = "2000"
+    repo.salvar_plano(lido, quem="MARIA")
+    assert repo.plano(pid).quantidade == "2000"
+    assert len(repo.planos()) == 1
+
+
+def test_plano_critico_e_banco_antigo_ganha_a_coluna(tmp_path):
+    import sqlite3
+
+    arquivo = tmp_path / "antigo.db"
+    con = sqlite3.connect(arquivo)  # banco de antes da coluna "critico"
+    con.execute("CREATE TABLE planos (id INTEGER PRIMARY KEY, data TEXT NOT NULL, cliente TEXT"
+                " NOT NULL, item TEXT NOT NULL DEFAULT '', lote TEXT NOT NULL DEFAULT '',"
+                " descricao TEXT NOT NULL, bobina_mae TEXT NOT NULL DEFAULT '', quantidade"
+                " TEXT NOT NULL, entrega TEXT, observacoes TEXT NOT NULL DEFAULT '', vendedor"
+                " TEXT NOT NULL DEFAULT '', criado_em TEXT NOT NULL, alterado_em TEXT,"
+                " alterado_por TEXT, excluido_em TEXT)")
+    con.execute("INSERT INTO planos (data, cliente, descricao, quantidade, criado_em) VALUES"
+                " ('2026-11-18', 'Alfa Chapas', 'ROLO', '100', '2026-11-18')")
+    con.commit()
+    con.close()
+    repo = Repositorio(arquivo)
+    antigo = repo.planos()[0]
+    assert antigo.cliente == "Alfa Chapas" and antigo.critico is False
+    antigo.critico = True
+    repo.salvar_plano(antigo)
+    assert repo.plano(antigo.id).critico is True

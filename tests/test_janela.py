@@ -140,3 +140,38 @@ def test_cores_do_prazo():
     assert cores_do_prazo(hoje + datetime.timedelta(days=1), False, hoje) == HOJE
     assert cores_do_prazo(hoje + datetime.timedelta(days=5), False, hoje) is None
     assert cores_do_prazo(hoje - datetime.timedelta(days=9), True, hoje) == ENTREGUE
+
+
+def test_salvar_plano_de_corte(repo):
+    from planos_pedidos.interface.aba_planos import JanelaPlano
+
+    j = JanelaPlano(repo, "JOAO")
+    j.salvar()
+    assert "Falta a descrição do item." in j.erros.text()
+    j.cliente.setText("ALFA CHAPAS")
+    j.descricao.setText("CHAPA 1,95 x 1200 x 3000")
+    j.bobina.setText("20-99-001 - BOBINA TESTE")
+    j.quantidade.setText("8000")
+    assert j.dica_quantidade.text() == "Vai aparecer: 8.000 kg"
+    j.entrega.campo.setText("31/02/2026")  # data que não existe
+    j.salvar()
+    assert "Data de entrega inválida" in j.erros.text()
+    assert "Falta a data de entrega" not in j.erros.text()
+    j.entrega.campo.setText("25/11/2026")
+    j.salvar()
+    plano = repo.planos()[0]
+    assert plano.cliente == "Alfa Chapas" and plano.quantidade == "8000"
+    assert plano.vendedor == "JOAO"
+
+
+def test_aba_planos_lista_e_atualiza(janela, repo):
+    from planos_pedidos.regras.planos import Plano
+
+    aba = janela.aba_planos
+    assert aba.tabela.isHidden()
+    repo.salvar_plano(Plano(data=datetime.date(2026, 11, 18), cliente="Alfa Chapas",
+                            descricao="ROLO 0,75", quantidade="saldo total",
+                            entrega=datetime.date(2026, 11, 20), vendedor="MARIA"))
+    aba.atualizar.click()
+    assert aba.tabela.rowCount() == 1
+    assert aba.tabela.item(0, 6).text() == "saldo total"

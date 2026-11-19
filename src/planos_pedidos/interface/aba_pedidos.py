@@ -14,7 +14,6 @@ from PySide6.QtWidgets import (
     QHeaderView,
     QLabel,
     QLineEdit,
-    QMessageBox,
     QScrollArea,
     QTableWidget,
     QTableWidgetItem,
@@ -29,6 +28,8 @@ from planos_pedidos.interface.componentes import (
     CampoData,
     RotuloAviso,
     botao,
+    confirmar_cliente_novo,
+    texto_aviso_cliente,
 )
 from planos_pedidos.interface.estilo import ATRASADO, CORES, ENTREGUE, HOJE
 from planos_pedidos.interface.icones import por_icone
@@ -365,15 +366,7 @@ class JanelaPedido(QDialog):
 
     # -------------------------------------------------------------- avisos
     def _avisar_cliente(self) -> None:
-        nome = self.cliente.nome()
-        if not nome or self.cliente.existente() or self.cliente.filtradas():
-            self.aviso_cliente.mostrar("")
-            return
-        parecidos = self.cliente.parecidos()
-        texto = f"\"{nome}\" é um cliente novo: será cadastrado ao salvar."
-        if parecidos:
-            texto += f" Parece com: {', '.join(parecidos)}. Se for o mesmo, escolha na lista."
-        self.aviso_cliente.mostrar(texto)
+        self.aviso_cliente.mostrar(texto_aviso_cliente(self.cliente))
 
     def _avisar_numero(self) -> None:
         numero = self.numero.text().strip()
@@ -421,14 +414,7 @@ class JanelaPedido(QDialog):
         self.accept()
 
     def _confirmar_cliente_novo(self, nome: str) -> bool:
-        caixa = QMessageBox(self)
-        caixa.setWindowTitle("Cliente novo")
-        caixa.setText(f"\"{nome}\" ainda não está na lista de clientes.")
-        caixa.setInformativeText("Cadastrar como cliente novo?")
-        criar = caixa.addButton("Criar novo", QMessageBox.AcceptRole)
-        caixa.addButton("Voltar e escolher da lista", QMessageBox.RejectRole)
-        caixa.exec()
-        return caixa.clickedButton() is criar
+        return confirmar_cliente_novo(self, nome)
 
 
 # --------------------------------------------------------------------------- aba (lista)
