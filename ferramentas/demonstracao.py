@@ -2,7 +2,8 @@
 
 Serve para mostrar às vendedoras como vai ficar, como se a Ana e a Carlos já tivessem
 começado a lançar. O banco é criado do zero numa pasta temporária a cada vez (nunca mexe nos
-dados de verdade). Todos os nomes de clientes e números são inventados.
+dados de verdade). Pedidos, planos e números são inventados. Os clientes vêm da lista
+`dados/clientes.txt` (fora do Git, só no PC); sem ela, usa nomes fictícios.
 
     python ferramentas/demonstracao.py            # abre como ANA
     python ferramentas/demonstracao.py CARLOS      # abre como CARLOS
@@ -21,13 +22,25 @@ CLIENTES = ["Alfa Chapas", "Beta Aços", "Gama Estruturas", "Delta Implementos",
             "Ômega Metalúrgica", "Sigma Telhas", "Vetor Perfis", "Prisma Caldeiraria"]
 
 
-def criar_banco(pasta: Path, hoje: datetime.date | None = None) -> Path:
+def ler_clientes(arquivo: Path) -> list[str]:
+    """Lista de clientes do PC (um por linha); vazia se não existir."""
+    if not arquivo.exists():
+        return []
+    return [linha.strip() for linha in arquivo.read_text(encoding="utf-8").splitlines()
+            if linha.strip()]
+
+
+def criar_banco(pasta: Path, hoje: datetime.date | None = None,
+                clientes: list[str] | None = None) -> Path:
     from planos_pedidos.dados.caminhos import NOME_BANCO
     from planos_pedidos.dados.repositorio import Repositorio
     from planos_pedidos.regras.pedidos import Item, Pedido, Tipo
     from planos_pedidos.regras.planos import Plano
 
     hoje = hoje or datetime.date.today()
+    nomes = clientes or CLIENTES
+    # Os registros usam 8 clientes (0 a 7); com uma lista maior, os outros também aparecem.
+    usados = [nomes[i % len(nomes)] for i in range(max(8, len(nomes)))]
     sorteio = random.Random(42)  # sempre os mesmos dados
 
     def dia(n: int) -> datetime.date:
@@ -37,7 +50,7 @@ def criar_banco(pasta: Path, hoje: datetime.date | None = None) -> Path:
     arquivo = pasta / NOME_BANCO
     arquivo.unlink(missing_ok=True)
     repo = Repositorio(arquivo)
-    for c in CLIENTES:
+    for c in nomes:
         repo.adicionar_cliente(c)
 
     # ---------------------------------------------------------- pedidos
@@ -69,7 +82,8 @@ def criar_banco(pasta: Path, hoje: datetime.date | None = None) -> Path:
                               tipo=Tipo(tipo), espessura=esp, largura=larg, comprimento=comp,
                               quantidade=qtd, prazo=dia(prazo), entrega1=e1, entrega2=e2,
                               preco_kg=preco, observacoes="Retira no local" if k == 1 else ""))
-        repo.salvar_pedido(Pedido(data=dia(d), cliente=CLIENTES[cli], numero=str(48210 + n),
+        repo.salvar_pedido(Pedido(data=dia(d), cliente=usados[(cli + n) % len(usados)],
+                                  numero=str(48210 + n),
                                   vendedor=vend, itens=lista))
 
     # ---------------------------------------------------------- planos de corte
@@ -97,7 +111,7 @@ def criar_banco(pasta: Path, hoje: datetime.date | None = None) -> Path:
          False),
     ]
     for n, (vend, d, cli, desc, bobina, qtd, entrega, critico) in enumerate(planos):
-        repo.salvar_plano(Plano(data=dia(d), cliente=CLIENTES[cli],
+        repo.salvar_plano(Plano(data=dia(d), cliente=usados[(cli + n) % len(usados)],
                                 item=f"{sorteio.randint(10, 49)}-{sorteio.randint(100, 999)}",
                                 lote=f"V{3100 + n}", descricao=desc, bobina_mae=bobina,
                                 quantidade=qtd, entrega=dia(entrega), critico=critico,
@@ -106,12 +120,12 @@ def criar_banco(pasta: Path, hoje: datetime.date | None = None) -> Path:
 
     # Um de cada na Lixeira, para mostrar como funciona.
     lixo_pedido = repo.salvar_pedido(Pedido(
-        data=dia(-3), cliente=CLIENTES[6], numero="48299", vendedor="CARLOS",
+        data=dia(-3), cliente=usados[6], numero="48299", vendedor="CARLOS",
         itens=[Item(tipo=Tipo.ROLO, espessura=1.5, largura=200, quantidade=900,
                     prazo=dia(4), preco_kg=6.0)]))
     repo.excluir("pedido", lixo_pedido, quem="CARLOS")
     lixo_plano = repo.salvar_plano(Plano(
-        data=dia(-2), cliente=CLIENTES[4], lote="V3199", descricao="FITA 0,75 X 120",
+        data=dia(-2), cliente=usados[4], lote="V3199", descricao="FITA 0,75 X 120",
         bobina_mae="BF 0,75 X 1200", quantidade="700", entrega=dia(6), vendedor="ANA"))
     repo.excluir("plano", lixo_plano, quem="ANA")
     return arquivo
@@ -122,7 +136,7 @@ def main() -> int:
     sys.path.insert(0, str(raiz / "src"))
     os.environ["PLANOS_PEDIDOS_DADOS"] = str(PASTA)
     os.environ["PLANOS_PEDIDOS_USUARIO"] = sys.argv[1] if len(sys.argv) > 1 else "ANA"
-    criar_banco(PASTA)
+    criar_banco(PASTA, clientes=ler_clientes(raiz / "dados" / "clientes.txt"))
     from planos_pedidos.app import main as abrir
 
     return abrir()
