@@ -1,9 +1,11 @@
-"""Ponto de entrada: abre a janela maximizada."""
+"""Ponto de entrada: abre o banco da pasta de dados e a janela maximizada."""
 
 import sys
 
 from PySide6.QtWidgets import QApplication
 
+from planos_pedidos.dados.caminhos import LISTA_CLIENTES, NOME_BANCO, pasta_dados
+from planos_pedidos.dados.repositorio import Repositorio
 from planos_pedidos.interface.janela import JanelaPrincipal
 
 
@@ -13,7 +15,10 @@ def main() -> int:
 
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("CentralDePedidos")
     app = QApplication(sys.argv)
-    janela = JanelaPrincipal()
+    pasta = pasta_dados()
+    repo = Repositorio(pasta / NOME_BANCO)
+    repo.importar_clientes(pasta / LISTA_CLIENTES)  # lista inicial (só os que faltam)
+    janela = JanelaPrincipal(repo)
     janela.showMaximized()
     return app.exec()
 
