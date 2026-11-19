@@ -31,6 +31,7 @@ from planos_pedidos.interface.componentes import (
     confirmar_cliente_novo,
     texto_aviso_cliente,
 )
+from planos_pedidos.interface.edicao import abrir_com_trava, confirmar_exclusao
 from planos_pedidos.interface.estilo import ATRASADO, CORES, ENTREGUE, HOJE
 from planos_pedidos.interface.icones import por_icone
 from planos_pedidos.regras.formatos import (
@@ -52,6 +53,7 @@ from planos_pedidos.regras.pedidos import (
     prazo_mais_proximo,
     problemas_do_pedido,
 )
+from planos_pedidos.regras.vendedor import filtrar_por_vendedor
 
 
 def _texto_numero(valor: float | None, dinheiro_: bool = False) -> str:
@@ -302,6 +304,11 @@ class JanelaPedido(QDialog):
         self.erros = RotuloAviso("erro")
         geral.addWidget(self.erros)
         rodape = QHBoxLayout()
+        if not novo:
+            excluir = botao("Excluir", "delete")
+            excluir.setToolTip("Mandar para a Lixeira (dá para restaurar depois)")
+            excluir.clicked.connect(self.excluir)
+            rodape.addWidget(excluir)
         rodape.addStretch()
         cancelar = botao("Cancelar", "close")
         cancelar.clicked.connect(self.reject)
@@ -413,6 +420,11 @@ class JanelaPedido(QDialog):
         self.pedido = pedido
         self.accept()
 
+    def excluir(self) -> None:
+        if confirmar_exclusao(self, f"o pedido {self.pedido.numero}"):
+            self.repo.excluir("pedido", self.pedido.id, quem=self.quem)
+            self.accept()
+
     def _confirmar_cliente_novo(self, nome: str) -> bool:
         return confirmar_cliente_novo(self, nome)
 
@@ -422,6 +434,7 @@ class AbaPedidos(QWidget):
     """Lista de todos os pedidos, com pesquisa; clicar na linha abre o pedido."""
 
     mudou = Signal()
+    avisar = Signal(str)  # aviso amarelo no alto da janela (ex.: pedido em uso)
     COLUNAS = ["Data", "Nº pedido", "Cliente", "Itens", "Quantidade (kg)", "Falta (kg)",
                "Próximo prazo", "Registrado por"]
 
@@ -429,6 +442,7 @@ class AbaPedidos(QWidget):
         super().__init__(parent)
         self.repo = repo
         self.vendedor = vendedor
+        self.filtro_vendedor = ""  # "" = todos
         self.pedidos: list[Pedido] = []
 
         geral = QVBoxLayout(self)
@@ -484,7 +498,8 @@ class AbaPedidos(QWidget):
 
     def preencher(self) -> None:
         procurado = chave(self.pesquisa.text())
-        visiveis = [p for p in self.pedidos if self._combina(p, procurado)]
+        visiveis = [p for p in filtrar_por_vendedor(self.pedidos, self.filtro_vendedor)
+                    if self._combina(p, procurado)]
         self.visiveis = visiveis
         self.tabela.setRowCount(len(visiveis))
         for linha, p in enumerate(visiveis):
@@ -524,7 +539,11 @@ class AbaPedidos(QWidget):
         if pedido is None:
             return
         janela = JanelaPedido(self.repo, self.vendedor, pedido, parent=self)
-        janela.showMaximized()
-        if janela.exec():
+        janela.setWindowState(Qt.WindowMaximized)  # só aparece se conseguir a trava
+        mudou, aviso = abrir_com_trava(self.repo, "pedido", pedido.id, self.vendedor, janela)
+        if aviso:
+            janela.deleteLater()
+            self.avisar.emit(aviso)
+        if mudou:
             self.recarregar()
             self.mudou.emit()

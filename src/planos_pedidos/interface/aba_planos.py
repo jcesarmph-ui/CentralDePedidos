@@ -29,6 +29,7 @@ from planos_pedidos.interface.componentes import (
     confirmar_cliente_novo,
     texto_aviso_cliente,
 )
+from planos_pedidos.interface.edicao import abrir_com_trava, confirmar_exclusao
 from planos_pedidos.interface.estilo import CORES
 from planos_pedidos.interface.icones import por_icone
 from planos_pedidos.regras.formatos import chave, data_tela
@@ -38,6 +39,7 @@ from planos_pedidos.regras.planos import (
     problemas_do_plano,
     quantidade_tela,
 )
+from planos_pedidos.regras.vendedor import filtrar_por_vendedor
 
 
 def _rotulo(texto: str) -> QLabel:
@@ -126,6 +128,11 @@ class JanelaPlano(QDialog):
         geral.addWidget(self.erros)
         geral.addStretch()
         rodape = QHBoxLayout()
+        if not novo:
+            excluir = botao("Excluir", "delete")
+            excluir.setToolTip("Mandar para a Lixeira (dá para restaurar depois)")
+            excluir.clicked.connect(self.excluir)
+            rodape.addWidget(excluir)
         rodape.addStretch()
         cancelar = botao("Cancelar", "close")
         cancelar.clicked.connect(self.reject)
@@ -197,11 +204,17 @@ class JanelaPlano(QDialog):
         self.plano = plano
         self.accept()
 
+    def excluir(self) -> None:
+        if confirmar_exclusao(self, "este plano de corte"):
+            self.repo.excluir("plano", self.plano.id, quem=self.quem)
+            self.accept()
+
 
 class AbaPlanos(QWidget):
     """Lista de todos os planos de corte, com pesquisa; clicar na linha abre o plano."""
 
     mudou = Signal()
+    avisar = Signal(str)  # aviso amarelo no alto da janela (ex.: plano em uso)
     COLUNAS = ["Data", "Cliente", "Código do item", "Volume / lote", "Descrição do item",
                "Bobina mãe",
                "Quantidade", "Entrega", "Observações", "Registrado por"]
@@ -210,6 +223,7 @@ class AbaPlanos(QWidget):
         super().__init__(parent)
         self.repo = repo
         self.vendedor = vendedor
+        self.filtro_vendedor = ""  # "" = todos
         self.planos: list[Plano] = []
         self.visiveis: list[Plano] = []
 
@@ -262,7 +276,7 @@ class AbaPlanos(QWidget):
     def preencher(self) -> None:
         procurado = chave(self.pesquisa.text())
         self.visiveis = [
-            p for p in self.planos
+            p for p in filtrar_por_vendedor(self.planos, self.filtro_vendedor)
             if procurado in chave(" ".join([p.cliente, p.item, p.lote, p.descricao,
                                             p.bobina_mae, p.observacoes, p.vendedor]))]
         self.tabela.setRowCount(len(self.visiveis))
@@ -282,7 +296,13 @@ class AbaPlanos(QWidget):
 
     def _abrir_janela(self, plano: Plano | None) -> None:
         janela = JanelaPlano(self.repo, self.vendedor, plano, parent=self)
-        if janela.exec():
+        if plano is None:
+            mudou = bool(janela.exec())
+        else:
+            mudou, aviso = abrir_com_trava(self.repo, "plano", plano.id, self.vendedor, janela)
+            if aviso:
+                self.avisar.emit(aviso)
+        if mudou:
             self.recarregar()
             self.mudou.emit()
 

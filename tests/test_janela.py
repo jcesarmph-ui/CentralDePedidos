@@ -32,9 +32,9 @@ def janela(repo):
     j.close()
 
 
-def test_tres_abas(janela):
+def test_quatro_abas(janela):
     nomes = [janela.abas.tabText(i) for i in range(janela.abas.count())]
-    assert nomes == ["Agenda", "Pedidos", "Planos de corte"]
+    assert nomes == ["Agenda", "Pedidos", "Planos de corte", "Lixeira"]
 
 
 def test_troca_de_tema_e_lembrada(janela, repo):
