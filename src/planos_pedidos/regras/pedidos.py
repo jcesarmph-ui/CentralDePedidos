@@ -24,6 +24,7 @@ class Item:
     largura: float | None = None  # mm
     comprimento: float | None = None  # mm — só chapa
     quantidade: float | None = None  # kg
+    estoque: float | None = None  # kg que já tem em estoque (a vendedora preenche)
     prazo: datetime.date | None = None
     entrega1: float | None = None  # kg
     entrega2: float | None = None  # kg
