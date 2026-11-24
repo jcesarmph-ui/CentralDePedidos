@@ -118,6 +118,15 @@ def criar_banco(pasta: Path, hoje: datetime.date | None = None,
                                 vendedor=vend,
                                 observacoes="Embalar em pallet" if n % 4 == 0 else ""))
 
+    # Situação: alguns já atendidos, para mostrar o verde (o pedido com tudo entregue
+    # já fica atendido sozinho; este aqui foi marcado à mão).
+    for plano in repo.planos()[-3:-1]:
+        plano.atendido = True
+        repo.salvar_plano(plano)
+    pedido = repo.pedidos()[1]
+    pedido.atendido = True
+    repo.salvar_pedido(pedido)
+
     # Um de cada na Lixeira, para mostrar como funciona.
     lixo_pedido = repo.salvar_pedido(Pedido(
         data=dia(-3), cliente=usados[6], numero="48299", vendedor="CARLOS",
