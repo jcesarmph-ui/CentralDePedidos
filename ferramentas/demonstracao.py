@@ -3,7 +3,8 @@
 Serve para mostrar como vai ficar, como se a equipe já tivesse começado a lançar
 (vendedores da lista `dados/vendedores.txt`; sem ela, ANA e CARLOS). O banco é criado do
 zero numa pasta temporária a cada vez (nunca mexe nos dados de verdade). Pedidos, planos e
-números são inventados. Os clientes vêm da lista `dados/clientes.txt` (fora do Git, só no PC); sem ela, usa nomes fictícios.
+números são inventados. Os clientes vêm da lista `dados/clientes.txt`
+(fora do Git, só no PC); sem ela, usa nomes fictícios.
 
     python ferramentas/demonstracao.py            # abre como o primeiro da lista
     python ferramentas/demonstracao.py CARLOS     # abre como CARLOS
