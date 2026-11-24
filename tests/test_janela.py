@@ -209,3 +209,17 @@ def test_agenda_navega_entre_meses(janela):
     assert (agenda.ano, agenda.mes) == (hoje.year + 1, hoje.month)
     agenda.botao_hoje.click()
     assert (agenda.ano, agenda.mes) == (hoje.year, hoje.month)
+
+
+def test_atendido_marca_sozinho_quando_tudo_entregue(repo):
+    janela = JanelaPedido(repo, "ANA")
+    linha = janela.linhas[0]
+    _preencher_item(linha, quantidade="1.000", e1="400")
+    assert janela.atendido.isEnabled() and not janela.atendido.isChecked()
+    linha.entrega2.setText("600")  # falta zerou
+    assert janela.atendido.isChecked() and not janela.atendido.isEnabled()
+    linha.entrega2.setText("")  # voltou a faltar: volta ao que a vendedora escolheu
+    assert not janela.atendido.isChecked()
+    janela.atendido.setChecked(True)  # marcado à mão (cliente desistiu do resto)
+    pedido, _ = janela.ler_pedido()
+    assert pedido.atendido

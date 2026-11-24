@@ -81,7 +81,9 @@ def criar_banco(pasta: Path, hoje: datetime.date | None = None,
             lista.append(Item(codigo=f"{sorteio.randint(10, 49)}-{sorteio.randint(100, 999)}",
                               tipo=Tipo(tipo), espessura=esp, largura=larg, comprimento=comp,
                               quantidade=qtd, prazo=dia(prazo), entrega1=e1, entrega2=e2,
-                              preco_kg=preco, observacoes="Retira no local" if k == 1 else ""))
+                              preco_kg=preco, observacoes="Retira no local" if k == 1 else "",
+                              # Em estoque é opcional: só alguns itens têm.
+                              estoque=round(qtd * 0.6) if (n + k) % 2 == 0 else None))
         repo.salvar_pedido(Pedido(data=dia(d), cliente=usados[(cli + n) % len(usados)],
                                   numero=str(48210 + n),
                                   vendedor=vend, itens=lista))
@@ -115,8 +117,17 @@ def criar_banco(pasta: Path, hoje: datetime.date | None = None,
                                 item=f"{sorteio.randint(10, 49)}-{sorteio.randint(100, 999)}",
                                 lote=f"V{3100 + n}", descricao=desc, bobina_mae=bobina,
                                 quantidade=qtd, entrega=dia(entrega), critico=critico,
-                                vendedor=vend,
+                                vendedor=vend, estoque=1500.0 * (n % 3) or None,
                                 observacoes="Embalar em pallet" if n % 4 == 0 else ""))
+
+    # Situação: alguns já atendidos, para mostrar o verde (o pedido com tudo entregue
+    # já fica atendido sozinho; este aqui foi marcado à mão).
+    for plano in repo.planos()[-3:-1]:
+        plano.atendido = True
+        repo.salvar_plano(plano)
+    pedido = repo.pedidos()[1]
+    pedido.atendido = True
+    repo.salvar_pedido(pedido)
 
     # Um de cada na Lixeira, para mostrar como funciona.
     lixo_pedido = repo.salvar_pedido(Pedido(
