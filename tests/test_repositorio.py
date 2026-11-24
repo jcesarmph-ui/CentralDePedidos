@@ -106,3 +106,32 @@ def test_plano_critico_e_banco_antigo_ganha_a_coluna(tmp_path):
     antigo.critico = True
     repo.salvar_plano(antigo)
     assert repo.plano(antigo.id).critico is True
+
+
+def test_atendido_e_gravado_em_pedido_e_plano(repo):
+    pedido = _pedido()
+    pedido.atendido = True
+    repo.salvar_pedido(pedido)
+    assert repo.pedido(pedido.id).atendido
+    plano = Plano(data=datetime.date(2026, 11, 20), cliente="Beta", descricao="x",
+                  quantidade="1", entrega=datetime.date(2026, 11, 25), atendido=True)
+    repo.salvar_plano(plano)
+    assert repo.plano(plano.id).atendido
+    plano.atendido = False
+    repo.salvar_plano(plano)
+    assert not repo.plano(plano.id).atendido
+
+
+def test_banco_antigo_ganha_a_coluna_atendido(tmp_path):
+    import sqlite3
+
+    arquivo = tmp_path / "antigo.db"
+    Repositorio(arquivo)
+    con = sqlite3.connect(arquivo)
+    con.execute("ALTER TABLE pedidos DROP COLUMN atendido")
+    con.execute("ALTER TABLE planos DROP COLUMN atendido")
+    con.commit()
+    con.close()
+    repo = Repositorio(arquivo)  # ao abrir, acrescenta sem perder nada
+    repo.salvar_pedido(_pedido())
+    assert not repo.pedidos()[0].atendido

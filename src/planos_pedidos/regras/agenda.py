@@ -4,19 +4,24 @@ Cada pedido vira uma etiqueta por prazo (itens do mesmo pedido com o mesmo prazo
 cada plano vira uma etiqueta na data de entrega.
 
 Situação (cor da etiqueta):
-- ATRASADO: pedido com prazo vencido e ainda faltando entregar;
+- ATRASADO: prazo vencido e ainda em aberto;
 - PERTO: vence hoje ou amanhã (pedido faltando entregar ou plano);
 - NO_PRAZO: vence depois de amanhã;
-- ENTREGUE: pedido com todos os itens daquele prazo entregues;
-- PASSOU: plano com data passada — sem status ainda, não dá para saber se foi entregue
-  (pendência: quando os planos tiverem status, vira ENTREGUE ou ATRASADO).
+- ENTREGUE: pedido/plano marcado "Atendido" (o pedido também quando tudo foi entregue)
+  ou itens daquele prazo do pedido já entregues.
 """
 
 import datetime
 from dataclasses import dataclass
 from enum import StrEnum
 
-from planos_pedidos.regras.pedidos import Pedido, descricao, falta, item_entregue
+from planos_pedidos.regras.pedidos import (
+    Pedido,
+    descricao,
+    falta,
+    item_entregue,
+    pedido_atendido,
+)
 from planos_pedidos.regras.planos import Plano, quantidade_kg
 
 
@@ -25,7 +30,6 @@ class Situacao(StrEnum):
     PERTO = "hoje/amanhã"
     NO_PRAZO = "no prazo"
     ENTREGUE = "entregue"
-    PASSOU = "data passada"
 
 
 class Tipo(StrEnum):
@@ -60,9 +64,10 @@ def eventos_do_pedido(pedido: Pedido, hoje: datetime.date) -> list[Evento]:
     for item in pedido.itens:
         if item.prazo:
             por_prazo.setdefault(item.prazo, []).append(item)
+    atendido = pedido_atendido(pedido)
     eventos = []
     for prazo, itens in sorted(por_prazo.items()):
-        entregue = all(item_entregue(i) for i in itens)
+        entregue = atendido or all(item_entregue(i) for i in itens)
         situacao = Situacao.ENTREGUE if entregue else _situacao_por_data(prazo, hoje)
         faltando = sum(max(falta(i) or 0, 0) for i in itens)
         eventos.append(Evento(
@@ -76,7 +81,7 @@ def eventos_do_pedido(pedido: Pedido, hoje: datetime.date) -> list[Evento]:
 def evento_do_plano(plano: Plano, hoje: datetime.date) -> Evento | None:
     if plano.entrega is None:
         return None
-    situacao = (Situacao.PASSOU if plano.entrega < hoje
+    situacao = (Situacao.ENTREGUE if plano.atendido
                 else _situacao_por_data(plano.entrega, hoje))
     return Evento(
         data=plano.entrega, tipo=Tipo.PLANO, id=plano.id, titulo=plano.lote or plano.item,
@@ -92,7 +97,7 @@ def montar_eventos(pedidos: list[Pedido], planos: list[Plano],
     eventos += [e for p in planos if (e := evento_do_plano(p, hoje))]
     # No dia: atrasados e críticos primeiro.
     ordem = {Situacao.ATRASADO: 0, Situacao.PERTO: 1, Situacao.NO_PRAZO: 2,
-             Situacao.PASSOU: 3, Situacao.ENTREGUE: 4}
+             Situacao.ENTREGUE: 3}
     return sorted(eventos, key=lambda e: (e.data, not e.critico, ordem[e.situacao]))
 
 

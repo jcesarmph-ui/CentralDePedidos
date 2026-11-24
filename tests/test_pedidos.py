@@ -65,3 +65,16 @@ def test_prazo_mais_proximo_ignora_entregues():
     ])
     assert prazo_mais_proximo(pedido) == HOJE + datetime.timedelta(days=3)
     assert falta_total(pedido) == 100
+
+
+def test_pedido_atendido_a_mao_ou_sozinho_quando_tudo_entregue():
+    from planos_pedidos.regras.pedidos import pedido_atendido, prazo_mais_proximo
+
+    aberto = Pedido(itens=[Item(quantidade=100, entrega1=40,
+                                prazo=datetime.date(2026, 12, 1))])
+    assert not pedido_atendido(aberto)
+    aberto.atendido = True  # cliente desistiu do resto
+    assert pedido_atendido(aberto) and prazo_mais_proximo(aberto) is None
+    entregue = Pedido(itens=[Item(quantidade=100, entrega1=60, entrega2=40)])
+    assert pedido_atendido(entregue)  # sozinho
+    assert not pedido_atendido(Pedido())  # sem itens não conta

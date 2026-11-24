@@ -39,6 +39,7 @@ class Pedido:
     numero: str = ""
     vendedor: str = ""
     itens: list[Item] = field(default_factory=list)
+    atendido: bool = False  # marcado à mão pela vendedora (ex.: cliente desistiu do resto)
     id: int | None = None
 
 
@@ -57,6 +58,20 @@ def item_entregue(item: Item) -> bool:
     """Entregue = houve entrega e a falta zerou (ou passou)."""
     f = falta(item)
     return f is not None and entregue_kg(item) > 0 and f <= 0
+
+
+def tudo_entregue(pedido: Pedido) -> bool:
+    """Todos os itens entregues (falta zerada em todos)."""
+    return bool(pedido.itens) and all(item_entregue(i) for i in pedido.itens)
+
+
+def pedido_atendido(pedido: Pedido) -> bool:
+    """Atendido = marcado à mão ou tudo entregue (aí vira atendido sozinho)."""
+    return pedido.atendido or tudo_entregue(pedido)
+
+
+def situacao_tela(atendido: bool) -> str:
+    return "Atendido" if atendido else "Em aberto"
 
 
 def descricao(item: Item) -> str:
@@ -104,6 +119,8 @@ def problemas_do_pedido(pedido: Pedido) -> list[str]:
 
 def prazo_mais_proximo(pedido: Pedido) -> datetime.date | None:
     """O prazo do item ainda não entregue que vence primeiro."""
+    if pedido_atendido(pedido):
+        return None
     prazos = [i.prazo for i in pedido.itens if i.prazo and not item_entregue(i)]
     return min(prazos) if prazos else None
 

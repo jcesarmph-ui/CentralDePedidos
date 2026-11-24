@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QAbstractSpinBox,
     QApplication,
     QCalendarWidget,
+    QCheckBox,
     QComboBox,
     QCompleter,
     QHBoxLayout,
@@ -17,6 +18,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QPushButton,
     QTabBar,
+    QTableWidgetItem,
     QToolButton,
     QWidget,
 )
@@ -228,3 +230,22 @@ def confirmar_cliente_novo(pai, nome: str) -> bool:
     caixa.addButton("Voltar e escolher da lista", QMessageBox.RejectRole)
     caixa.exec()
     return caixa.clickedButton() is criar
+
+
+# ------------------------------------------------------------------ situação (atendido)
+def caixa_atendido(dica: str) -> QCheckBox:
+    """A única opção de situação: marcada = Atendido; desmarcada = Em aberto."""
+    caixa = QCheckBox("Atendido")
+    caixa.setToolTip(dica)
+    return caixa
+
+
+def celula_situacao(atendido: bool) -> QTableWidgetItem:
+    """Célula da lista: "Atendido" em verde (negrito) ou "Em aberto"."""
+    celula = QTableWidgetItem("Atendido" if atendido else "Em aberto")
+    if atendido:
+        celula.setForeground(QColor(CORES["certo"]))
+        fonte = celula.font()
+        fonte.setBold(True)
+        celula.setFont(fonte)
+    return celula

@@ -23,6 +23,7 @@ class Plano:
     entrega: datetime.date | None = None
     observacoes: str = ""
     critico: bool = False  # entrega crítica (na planilha: "12/08/2026 - CRITICO")
+    atendido: bool = False  # na planilha: coluna "AT"/"A" (atendido / em aberto)
     vendedor: str = ""
     id: int | None = None
 
