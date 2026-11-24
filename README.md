@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/área-vendas_e_produção-blue?style=flat-square" alt="Área"/>
   <img src="https://img.shields.io/badge/tipo-aplicação_desktop-orange?style=flat-square" alt="Tipo"/>
   <img src="https://img.shields.io/badge/foco-UX-purple?style=flat-square" alt="Foco"/>
-  <img src="https://img.shields.io/badge/testes-82_passando-brightgreen?style=flat-square" alt="Testes"/>
+  <img src="https://img.shields.io/badge/testes-83_passando-brightgreen?style=flat-square" alt="Testes"/>
   <img src="https://img.shields.io/badge/idioma-pt--BR-green?style=flat-square" alt="Idioma"/>
   <img src="https://img.shields.io/badge/versão-0.6.1-blue?style=flat-square" alt="Versão"/>
 </p>
@@ -89,7 +89,7 @@ tirar trabalho repetitivo de quem vende.
 
 | Indicador | Valor |
 |---|---|
-| ✅ Testes automáticos | **82** (regras, banco e janela) |
+| ✅ Testes automáticos | **83** (regras, banco e janela) |
 | 🧾 Linhas de código | **~2.900** no programa + **~750** de testes |
 | 🔀 Pull requests | **8** |
 | 🧭 Fases entregues | **6** (0.1 a 0.6) |

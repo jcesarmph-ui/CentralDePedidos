@@ -8,8 +8,10 @@ import getpass
 import os
 import re
 import socket
+from pathlib import Path
 
-# Quem aparece no filtro "Registrado por" (protótipo: só as duas vendedoras).
+# Quem aparece no filtro "Registrado por" quando a pasta de dados não tem a lista
+# `vendedores.txt` (os nomes de verdade ficam só nela, fora do Git).
 VENDEDORES = ("ANA", "CARLOS")
 
 # Separadores que aparecem nos logins: ponto, sublinhado, hífen, espaço.
@@ -58,3 +60,12 @@ def filtrar_por_vendedor(registros: list, vendedor: str) -> list:
     if not vendedor:
         return list(registros)
     return [r for r in registros if r.vendedor.upper() == vendedor.upper()]
+
+
+def ler_vendedores(arquivo: Path) -> tuple[str, ...]:
+    """Nomes do filtro, um por linha, em MAIÚSCULAS; sem a lista, os nomes de exemplo."""
+    if arquivo.exists():
+        nomes = [n.strip().upper() for n in arquivo.read_text(encoding="utf-8").splitlines()]
+        if any(nomes):
+            return tuple(n for n in nomes if n)
+    return VENDEDORES

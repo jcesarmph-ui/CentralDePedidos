@@ -24,3 +24,12 @@ from planos_pedidos.regras.vendedor import primeiro_nome
 )
 def test_primeiro_nome(usuario, esperado):
     assert primeiro_nome(usuario) == esperado
+
+
+def test_lista_de_vendedores_do_arquivo_ou_exemplo(tmp_path):
+    from planos_pedidos.regras.vendedor import VENDEDORES, ler_vendedores
+
+    arquivo = tmp_path / "vendedores.txt"
+    assert ler_vendedores(arquivo) == VENDEDORES  # sem a lista: nomes de exemplo
+    arquivo.write_text("bruno\n\n  Dora \n", encoding="utf-8")
+    assert ler_vendedores(arquivo) == ("BRUNO", "DORA")
