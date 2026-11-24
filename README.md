@@ -98,8 +98,6 @@ tirar trabalho repetitivo de quem vende.
 
 ## 📸 Telas
 
-> Todas as telas usam **dados fictícios** (clientes, vendedores, números e lotes inventados).
-
 <p align="center">
   <img src="docs/telas/01_agenda.png" alt="Agenda dos prazos" width="100%"/><br/>
   <i>Agenda: o mês inteiro com cores por prazo, atrasados e próximos 7 dias ao lado</i>
@@ -239,7 +237,7 @@ Exclusão é **lógica**: o registro ganha a data de exclusão e vai para a Lixe
 - **Testes automáticos** desde o primeiro dia; os testes nunca alteram as preferências reais de quem roda.
 - **Versionamento semântico**: `0.x` a cada fase, tag Git por versão.
 - **Cada ícone e cada tela aprovados por foto** antes de entrar.
-- Dados reais da empresa ficam **fora do repositório**; exemplos e fotos usam nomes fictícios.
+- Configurações de cada instalação (listas de clientes e vendedores) ficam na pasta de dados, separadas do código.
 
 <details>
 <summary><b>🗺️ Roteiro</b></summary>

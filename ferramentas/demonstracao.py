@@ -1,10 +1,10 @@
-"""Demonstração: abre o programa já cheio de pedidos e planos FICTÍCIOS.
+"""Demonstração: abre o programa já cheio de pedidos e planos de exemplo.
 
 Serve para mostrar como vai ficar, como se a equipe já tivesse começado a lançar
 (vendedores da lista `dados/vendedores.txt`; sem ela, ANA e CARLOS). O banco é criado do
-zero numa pasta temporária a cada vez (nunca mexe nos dados de verdade). Pedidos, planos e
-números são inventados. Os clientes vêm da lista `dados/clientes.txt`
-(fora do Git, só no PC); sem ela, usa nomes fictícios.
+zero numa pasta temporária a cada vez (nunca mexe no banco em uso). Pedidos, planos e
+números são gerados automaticamente. Os clientes vêm da lista `dados/clientes.txt`
+(opcional); sem ela, usa uma lista de exemplo.
 
     python ferramentas/demonstracao.py            # abre como o primeiro da lista
     python ferramentas/demonstracao.py CARLOS     # abre como CARLOS
