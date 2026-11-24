@@ -15,7 +15,6 @@
 <p align="center">
   <img src="https://img.shields.io/badge/área-vendas_e_produção-blue?style=flat-square" alt="Área"/>
   <img src="https://img.shields.io/badge/tipo-aplicação_desktop-orange?style=flat-square" alt="Tipo"/>
-  <img src="https://img.shields.io/badge/foco-UX-purple?style=flat-square" alt="Foco"/>
   <img src="https://img.shields.io/badge/testes-83_passando-brightgreen?style=flat-square" alt="Testes"/>
   <img src="https://img.shields.io/badge/idioma-pt--BR-green?style=flat-square" alt="Idioma"/>
   <img src="https://img.shields.io/badge/versão-0.6.1-blue?style=flat-square" alt="Versão"/>
@@ -133,18 +132,7 @@ tirar trabalho repetitivo de quem vende.
 - [x] Tema **azul-marinho** em modo **claro e escuro**, escolhido e lembrado por pessoa
 - [x] Pesquisa por cliente, número, código, medida, lote ou bobina
 
-## 🧭 UX: o programa é para os vendedores
-
-O programa atende uma necessidade da **equipe de vendas** e é
-usado **100% pelos vendedores**. Por isso o desenvolvimento seguiu práticas de UX:
-
-- **Entrevista com quem usa** antes de desenhar qualquer tela (o que fazem, o que incomoda, o que falta).
-- **Protótipo rápido**: começar com a primeira entrevista e melhorar com a opinião dos demais.
-- **Escolha visual por foto**: três propostas de tema, cada uma em modo claro e escuro, comparadas
-  lado a lado antes de virar código.
-- **Nunca passar informação só pela cor** e ícones apenas onde explicam algo.
-
-### Como a agenda decide a cor
+## 🎨 Como a agenda decide a cor
 
 ```mermaid
 flowchart TD
@@ -291,7 +279,7 @@ docs/telas/      fotos com dados fictícios
 
 ## 💼 Competências
 
-UX com usuários reais · Python · Interfaces desktop com Qt · SQLite em rede · Testes automáticos ·
+Python · Interfaces desktop com Qt · SQLite em rede · Testes automáticos ·
 Git e GitHub · Desenvolvimento com IA
 
 ---
