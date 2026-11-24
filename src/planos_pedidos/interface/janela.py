@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 )
 
 from planos_pedidos import __version__
+from planos_pedidos.dados.caminhos import LISTA_VENDEDORES, pasta_dados
 from planos_pedidos.dados.repositorio import Repositorio
 from planos_pedidos.interface import preferencias
 from planos_pedidos.interface.aba_agenda import AbaAgenda
@@ -23,9 +24,9 @@ from planos_pedidos.interface.aba_planos import AbaPlanos
 from planos_pedidos.interface.componentes import RotuloAviso, instalar_filtro_roda
 from planos_pedidos.interface.estilo import CORES, aplicar_tema
 from planos_pedidos.interface.icones import icone, repintar
-from planos_pedidos.regras.vendedor import VENDEDORES, vendedor_atual
+from planos_pedidos.regras.vendedor import ler_vendedores, vendedor_atual
 
-TITULO = "PLANOS E PEDIDOS"  # provisório: o nome definido ainda não foi escolhido
+TITULO = "CENTRAL DE PEDIDOS"
 
 ABAS = [  # (texto, ícone) — ícones aprovados por foto
     ("Agenda", "calendar_month"),
@@ -69,7 +70,7 @@ class JanelaPrincipal(QMainWindow):
         # Filtro "Registrado por": vale para todas as abas de uma vez.
         self.rotulo_filtro = QLabel(objectName="rotulo_filtro")
         self.filtro = QComboBox()
-        self.filtro.addItems([TODOS, *VENDEDORES])
+        self.filtro.addItems([TODOS, *ler_vendedores(pasta_dados() / LISTA_VENDEDORES)])
         self.filtro.setToolTip("Mostrar só o que foi registrado por uma pessoa")
         self.filtro.setMinimumWidth(150)
         self.filtro.currentTextChanged.connect(self.filtrar)
