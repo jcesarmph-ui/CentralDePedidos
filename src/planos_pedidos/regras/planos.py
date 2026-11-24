@@ -22,6 +22,7 @@ class Plano:
     quantidade: str = ""  # "2000", "1 un", "saldo total"…
     entrega: datetime.date | None = None
     observacoes: str = ""
+    estoque: float | None = None  # kg que já tem em estoque (a vendedora preenche)
     critico: bool = False  # entrega crítica (na planilha: "12/08/2026 - CRITICO")
     atendido: bool = False  # na planilha: coluna "AT"/"A" (atendido / em aberto)
     vendedor: str = ""

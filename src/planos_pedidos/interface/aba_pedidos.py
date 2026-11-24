@@ -88,7 +88,8 @@ class LinhaItem:
     """Os campos de um item, postos numa linha da grade de itens."""
 
     COLUNAS = ["", "Código", "Tipo", "Espessura (mm)", "Largura (mm)", "Comprimento (mm)",
-               "Quantidade (kg)", "Prazo de entrega", "1ª entrega (kg)", "2ª entrega (kg)",
+               "Quantidade (kg)", "Em estoque (kg)", "Prazo de entrega",
+               "1ª entrega (kg)", "2ª entrega (kg)",
                "Falta (kg)", "Preço do kg (R$)", "Observações", ""]
 
     def __init__(self, ao_mudar, ao_remover) -> None:
@@ -100,6 +101,8 @@ class LinhaItem:
         self.largura = QLineEdit()
         self.comprimento = QLineEdit()
         self.quantidade = QLineEdit()
+        self.estoque = QLineEdit()
+        self.estoque.setToolTip("Quantos kg deste item já tem em estoque")
         self.prazo = CampoData()
         self.entrega1 = QLineEdit()
         self.entrega2 = QLineEdit()
@@ -125,7 +128,7 @@ class LinhaItem:
         self.tipo.setMinimumWidth(115)
         self.observacoes.setMinimumWidth(220)
         for campo in (self.espessura, self.largura, self.comprimento, self.quantidade,
-                      self.entrega1, self.entrega2, self.preco):
+                      self.estoque, self.entrega1, self.entrega2, self.preco):
             campo.setAlignment(Qt.AlignRight)
             campo.setMaximumWidth(125)
             campo.textChanged.connect(lambda _t: ao_mudar())
@@ -135,7 +138,8 @@ class LinhaItem:
 
     def widgets(self) -> list[QWidget]:
         return [self.numero, self.codigo, self.tipo, self.espessura, self.largura,
-                self.comprimento, self.quantidade, self.prazo, self.entrega1, self.entrega2,
+                self.comprimento, self.quantidade, self.estoque, self.prazo,
+                self.entrega1, self.entrega2,
                 self.falta, self.preco, self.observacoes, self.remover]
 
     def _tipo_mudou(self, texto: str) -> None:
@@ -154,6 +158,7 @@ class LinhaItem:
         self.largura.setText(medida(item.largura))
         self.comprimento.setText(medida(item.comprimento))
         self.quantidade.setText(kg(item.quantidade))
+        self.estoque.setText(kg(item.estoque))
         self.prazo.definir(item.prazo)
         self.entrega1.setText(kg(item.entrega1))
         self.entrega2.setText(kg(item.entrega2))
@@ -193,6 +198,7 @@ class LinhaItem:
             largura=numero(self.largura, "largura"),
             comprimento=numero(self.comprimento, "comprimento"),
             quantidade=numero(self.quantidade, "quantidade"),
+            estoque=numero(self.estoque, "em estoque"),
             prazo=prazo,
             entrega1=numero(self.entrega1, "1ª entrega"),
             entrega2=numero(self.entrega2, "2ª entrega"),
@@ -286,7 +292,7 @@ class JanelaPedido(QDialog):
             rotulo = QLabel(texto, objectName="cabecalho_itens")
             rotulo.setWordWrap(True)
             self.grade_itens.addWidget(rotulo, 0, col)
-        self.grade_itens.setColumnStretch(12, 1)  # Observações
+        self.grade_itens.setColumnStretch(13, 1)  # Observações
         conteudo = QWidget(objectName="rolagem")
         vc = QVBoxLayout(conteudo)
         vc.setContentsMargins(0, 0, 0, 0)

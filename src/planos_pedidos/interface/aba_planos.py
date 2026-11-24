@@ -34,7 +34,7 @@ from planos_pedidos.interface.componentes import (
 from planos_pedidos.interface.edicao import abrir_com_trava, confirmar_exclusao
 from planos_pedidos.interface.estilo import CORES
 from planos_pedidos.interface.icones import por_icone
-from planos_pedidos.regras.formatos import chave, data_tela
+from planos_pedidos.regras.formatos import chave, data_tela, kg, ler_numero
 from planos_pedidos.regras.planos import (
     Plano,
     entrega_tela,
@@ -91,6 +91,10 @@ class JanelaPlano(QDialog):
         self.quantidade.setMaximumWidth(200)
         self.dica_quantidade = RotuloAviso("dica")
         self.quantidade.textChanged.connect(self._mostrar_quantidade)
+        self.estoque = QLineEdit()
+        self.estoque.setToolTip("Quantos kg já tem em estoque")
+        self.estoque.setMaximumWidth(200)
+        self.estoque.setAlignment(Qt.AlignRight)
         self.entrega = CampoData()
         self.critico = QCheckBox("Crítico")
         self.critico.setToolTip('Marque quando a entrega for crítica (aparece "CRÍTICO" '
@@ -119,10 +123,12 @@ class JanelaPlano(QDialog):
         # Linha 3: quantidade, data de entrega, observações
         grade.addWidget(_rotulo("Quantidade (kg)"), 5, 0)
         grade.addWidget(_rotulo("Data de entrega"), 5, 1)
-        grade.addWidget(_rotulo("Observações"), 5, 2, 1, 3)
+        grade.addWidget(_rotulo("Em estoque (kg)"), 5, 2)
+        grade.addWidget(_rotulo("Observações"), 5, 3, 1, 2)
         grade.addWidget(self.quantidade, 6, 0)
         grade.addWidget(self.entrega, 6, 1, Qt.AlignLeft)
-        grade.addWidget(self.observacoes, 6, 2, 1, 3)
+        grade.addWidget(self.estoque, 6, 2)
+        grade.addWidget(self.observacoes, 6, 3, 1, 2)
         grade.addWidget(self.dica_quantidade, 7, 0)
         grade.setColumnStretch(1, 2)
         grade.setColumnStretch(2, 1)
@@ -160,6 +166,7 @@ class JanelaPlano(QDialog):
             self.quantidade.setText(p.quantidade)
             self.entrega.definir(p.entrega)
             self.observacoes.setText(p.observacoes)
+            self.estoque.setText(kg(p.estoque))
             self.critico.setChecked(p.critico)
             self.atendido.setChecked(p.atendido)
 
@@ -180,12 +187,17 @@ class JanelaPlano(QDialog):
                 datas[nome] = None
                 invalidas.append(f"data {nome}")
                 avisos.append(f"Data {nome} inválida (use dd/mm/aaaa).")
+        try:
+            estoque = ler_numero(self.estoque.text())
+        except ValueError:
+            estoque = None
+            avisos.append("Número inválido em Em estoque.")
         plano = Plano(data=datas["do plano"], cliente=self.cliente.nome(),
                       item=self.item.text().strip(), lote=self.lote.text().strip(),
                       descricao=self.descricao.text().strip(),
                       bobina_mae=self.bobina.text().strip(),
                       quantidade=self.quantidade.text().strip(), entrega=datas["de entrega"],
-                      observacoes=self.observacoes.text().strip(),
+                      observacoes=self.observacoes.text().strip(), estoque=estoque,
                       critico=self.critico.isChecked(), atendido=self.atendido.isChecked(),
                       vendedor=self.plano.vendedor,
                       id=self.plano.id)
@@ -224,7 +236,7 @@ class AbaPlanos(QWidget):
     avisar = Signal(str)  # aviso amarelo no alto da janela (ex.: plano em uso)
     COLUNAS = ["Data", "Cliente", "Código do item", "Volume / lote", "Descrição do item",
                "Bobina mãe",
-               "Quantidade", "Entrega", "Observações", "Situação", "Registrado por"]
+               "Quantidade", "Em estoque", "Entrega", "Observações", "Situação", "Registrado por"]
 
     def __init__(self, repo: Repositorio, vendedor: str, parent=None) -> None:
         super().__init__(parent)
@@ -289,14 +301,16 @@ class AbaPlanos(QWidget):
         self.tabela.setRowCount(len(self.visiveis))
         for linha, p in enumerate(self.visiveis):
             textos = [data_tela(p.data), p.cliente, p.item, p.lote, p.descricao, p.bobina_mae,
-                      quantidade_tela(p.quantidade), entrega_tela(p), p.observacoes,
+                      quantidade_tela(p.quantidade),
+                      f"{kg(p.estoque)} kg" if p.estoque is not None else "",
+                      entrega_tela(p), p.observacoes,
                       None, p.vendedor]
             for col, texto in enumerate(textos):
                 celula = (celula_situacao(p.atendido) if texto is None
                           else QTableWidgetItem(texto))
-                if col == 6:
+                if col in (6, 7):
                     celula.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                if col in (4, 5, 8):
+                if col in (4, 5, 9):
                     celula.setToolTip(texto)
                 self.tabela.setItem(linha, col, celula)
         self.tabela.setVisible(bool(self.planos))
