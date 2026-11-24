@@ -83,7 +83,8 @@ def test_filtro_por_vendedor(repo):
     assert len(filtrar_por_vendedor(pedidos, "")) == 2
 
 
-def test_tela_filtra_e_avisa_trava(repo, tmp_path):
+def test_tela_filtra_e_avisa_trava(repo, tmp_path, monkeypatch):
+    monkeypatch.setenv("PLANOS_PEDIDOS_DADOS", str(tmp_path))  # sem lista: nomes de exemplo
     QSettings.setDefaultFormat(QSettings.IniFormat)
     QSettings.setPath(QSettings.IniFormat, QSettings.UserScope, str(tmp_path))
     _ = QApplication.instance() or QApplication([])

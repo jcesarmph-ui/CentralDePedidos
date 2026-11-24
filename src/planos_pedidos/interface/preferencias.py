@@ -2,7 +2,7 @@
 
 from PySide6.QtCore import QSettings
 
-EMPRESA, PROGRAMA = "CentralDePedidos", "PlanosPedidos"
+EMPRESA, PROGRAMA = "CentralDePedidos", "CentralDePedidos"
 
 
 def _configuracoes() -> QSettings:
