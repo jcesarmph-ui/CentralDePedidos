@@ -1,6 +1,6 @@
 """Visual azul-marinho, escuro e claro (escolhido por foto em 2026-11-18 — ver CLAUDE.md).
 
-Diferente dos outros programas (preto puro): este é de escritório/vendas, aberto o dia
+Diferente dos outros programas do autor (preto puro): este é de escritório/vendas, aberto o dia
 todo. O significado das cores continua: vermelho = atrasado/erro, amarelo = aviso/hoje,
 verde = entregue/certo.
 """
