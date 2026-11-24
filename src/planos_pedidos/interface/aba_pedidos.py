@@ -28,6 +28,8 @@ from planos_pedidos.interface.componentes import (
     CampoData,
     RotuloAviso,
     botao,
+    caixa_atendido,
+    celula_situacao,
     confirmar_cliente_novo,
     texto_aviso_cliente,
 )
@@ -50,8 +52,10 @@ from planos_pedidos.regras.pedidos import (
     falta,
     falta_total,
     item_entregue,
+    pedido_atendido,
     prazo_mais_proximo,
     problemas_do_pedido,
+    tudo_entregue,
 )
 from planos_pedidos.regras.vendedor import filtrar_por_vendedor
 
@@ -254,13 +258,19 @@ class JanelaPedido(QDialog):
         registrado = QLabel(self.pedido.vendedor or "—", objectName="vendedor")
         registrado.setToolTip("Preenchido sozinho com o nome do usuário do Windows de quem "
                               "cadastrou o pedido")
+        self._atendido_manual = self.pedido.atendido  # o que a vendedora marcou
+        self.atendido = caixa_atendido("Marque quando o pedido estiver atendido. Fica marcado "
+                                       "sozinho quando a falta de todos os itens zera.")
+        self.atendido.setChecked(self.pedido.atendido)
+        self.atendido.toggled.connect(self._atendido_mudou)
         for col, texto in enumerate(["Data do pedido", "Cliente", "Nº do pedido",
-                                     "Registrado por"]):
+                                     "Registrado por", "Situação"]):
             grade.addWidget(QLabel(texto, objectName="rotulo"), 0, col)
         grade.addWidget(self.data, 1, 0)
         grade.addWidget(self.cliente, 1, 1)
         grade.addWidget(self.numero, 1, 2)
         grade.addWidget(registrado, 1, 3)
+        grade.addWidget(self.atendido, 1, 4)
         grade.addWidget(self.aviso_cliente, 2, 1)
         grade.addWidget(self.aviso_numero, 2, 2)
         grade.setColumnStretch(1, 1)
@@ -327,6 +337,7 @@ class JanelaPedido(QDialog):
             self.numero.setText(self.pedido.numero)
             for item in self.pedido.itens:
                 self.adicionar_item(item)
+        self._atualizar_atendido()  # já entregue ao abrir: aparece marcado
 
     # -------------------------------------------------------------- itens
     def adicionar_item(self, item: Item | None = None) -> LinhaItem:
@@ -370,6 +381,22 @@ class JanelaPedido(QDialog):
     def _recalcular(self) -> None:
         for linha in self.linhas:
             linha.atualizar_falta()
+        self._atualizar_atendido()
+
+    def _atendido_mudou(self, marcado: bool) -> None:
+        if self.atendido.isEnabled():  # só conta o clique da vendedora, não o automático
+            self._atendido_manual = marcado
+
+    def _atualizar_atendido(self) -> None:
+        """Tudo entregue: marca sozinho e trava; senão volta ao que a vendedora escolheu."""
+        itens = [linha.ler()[0] for linha in self.linhas]
+        automatico = tudo_entregue(Pedido(itens=itens))
+        self.atendido.setEnabled(not automatico)
+        self.atendido.setChecked(automatico or self._atendido_manual)
+        self.atendido.setToolTip(
+            "Atendido sozinho: a falta de todos os itens zerou" if automatico else
+            "Marque quando o pedido estiver atendido. Fica marcado sozinho quando a falta "
+            "de todos os itens zera.")
 
     # -------------------------------------------------------------- avisos
     def _avisar_cliente(self) -> None:
@@ -397,7 +424,8 @@ class JanelaPedido(QDialog):
                 avisos.append(f"Item {n}: número inválido em {', '.join(invalidos)}.")
             itens.append(item)
         pedido = Pedido(data=data, cliente=self.cliente.nome(), numero=self.numero.text().strip(),
-                        vendedor=self.pedido.vendedor, itens=itens, id=self.pedido.id)
+                        vendedor=self.pedido.vendedor, itens=itens,
+                        atendido=self._atendido_manual, id=self.pedido.id)
         problemas = [p for p in problemas_do_pedido(pedido)
                      if not (p.startswith("Falta a data") and avisos)]
         return pedido, avisos + problemas
@@ -436,7 +464,7 @@ class AbaPedidos(QWidget):
     mudou = Signal()
     avisar = Signal(str)  # aviso amarelo no alto da janela (ex.: pedido em uso)
     COLUNAS = ["Data", "Nº pedido", "Cliente", "Itens", "Quantidade (kg)", "Falta (kg)",
-               "Próximo prazo", "Registrado por"]
+               "Próximo prazo", "Situação", "Registrado por"]
 
     def __init__(self, repo: Repositorio, vendedor: str, parent=None) -> None:
         super().__init__(parent)
@@ -503,16 +531,17 @@ class AbaPedidos(QWidget):
         self.visiveis = visiveis
         self.tabela.setRowCount(len(visiveis))
         for linha, p in enumerate(visiveis):
-            entregue = all(item_entregue(i) for i in p.itens) and bool(p.itens)
+            entregue = tudo_entregue(p)
             prazo = prazo_mais_proximo(p)
             itens = "; ".join(descricao(i) for i in p.itens)
             textos = [data_tela(p.data), p.numero, p.cliente, itens,
                       kg(sum(i.quantidade or 0 for i in p.itens)),
                       "entregue" if entregue else kg(falta_total(p)),
-                      data_tela(prazo) if prazo else ("—" if entregue else ""),
-                      p.vendedor]
+                      data_tela(prazo) if prazo else ("—" if pedido_atendido(p) else ""),
+                      None, p.vendedor]
             for col, texto in enumerate(textos):
-                celula = QTableWidgetItem(texto)
+                celula = (celula_situacao(pedido_atendido(p)) if texto is None
+                          else QTableWidgetItem(texto))
                 if col in (4, 5):
                     celula.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
                 if col == 3:

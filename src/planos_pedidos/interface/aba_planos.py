@@ -26,6 +26,8 @@ from planos_pedidos.interface.componentes import (
     CampoData,
     RotuloAviso,
     botao,
+    caixa_atendido,
+    celula_situacao,
     confirmar_cliente_novo,
     texto_aviso_cliente,
 )
@@ -95,16 +97,19 @@ class JanelaPlano(QDialog):
                                 "ao lado da data)")
         self.entrega.layout().addWidget(self.critico)
         self.observacoes = QLineEdit()
+        self.atendido = caixa_atendido("Marque quando o plano de corte estiver atendido "
+                                       "(desmarcado = em aberto)")
 
         # Linha 1: data, cliente, item, lote, quem registrou
         for col, texto in enumerate(["Data do plano", "Cliente", "Código do item", "Volume / lote",
-                                     "Registrado por"]):
+                                     "Registrado por", "Situação"]):
             grade.addWidget(_rotulo(texto), 0, col)
         grade.addWidget(self.data, 1, 0)
         grade.addWidget(self.cliente, 1, 1)
         grade.addWidget(self.item, 1, 2)
         grade.addWidget(self.lote, 1, 3)
         grade.addWidget(registrado, 1, 4)
+        grade.addWidget(self.atendido, 1, 5)
         grade.addWidget(self.aviso_cliente, 2, 1, 1, 3)
         # Linha 2: descrição e bobina mãe (texto livre, largo)
         grade.addWidget(_rotulo("Descrição do item"), 3, 0, 1, 2)
@@ -156,6 +161,7 @@ class JanelaPlano(QDialog):
             self.entrega.definir(p.entrega)
             self.observacoes.setText(p.observacoes)
             self.critico.setChecked(p.critico)
+            self.atendido.setChecked(p.atendido)
 
     def _mostrar_quantidade(self) -> None:
         """Mostra embaixo como vai ficar: "2.000 kg" (só quando muda algo)."""
@@ -180,7 +186,8 @@ class JanelaPlano(QDialog):
                       bobina_mae=self.bobina.text().strip(),
                       quantidade=self.quantidade.text().strip(), entrega=datas["de entrega"],
                       observacoes=self.observacoes.text().strip(),
-                      critico=self.critico.isChecked(), vendedor=self.plano.vendedor,
+                      critico=self.critico.isChecked(), atendido=self.atendido.isChecked(),
+                      vendedor=self.plano.vendedor,
                       id=self.plano.id)
         problemas = [p for p in problemas_do_plano(plano)
                      if not any(i in p for i in invalidas)]
@@ -217,7 +224,7 @@ class AbaPlanos(QWidget):
     avisar = Signal(str)  # aviso amarelo no alto da janela (ex.: plano em uso)
     COLUNAS = ["Data", "Cliente", "Código do item", "Volume / lote", "Descrição do item",
                "Bobina mãe",
-               "Quantidade", "Entrega", "Observações", "Registrado por"]
+               "Quantidade", "Entrega", "Observações", "Situação", "Registrado por"]
 
     def __init__(self, repo: Repositorio, vendedor: str, parent=None) -> None:
         super().__init__(parent)
@@ -283,9 +290,10 @@ class AbaPlanos(QWidget):
         for linha, p in enumerate(self.visiveis):
             textos = [data_tela(p.data), p.cliente, p.item, p.lote, p.descricao, p.bobina_mae,
                       quantidade_tela(p.quantidade), entrega_tela(p), p.observacoes,
-                      p.vendedor]
+                      None, p.vendedor]
             for col, texto in enumerate(textos):
-                celula = QTableWidgetItem(texto)
+                celula = (celula_situacao(p.atendido) if texto is None
+                          else QTableWidgetItem(texto))
                 if col == 6:
                     celula.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
                 if col in (4, 5, 8):
