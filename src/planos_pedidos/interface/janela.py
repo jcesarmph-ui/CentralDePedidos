@@ -25,7 +25,7 @@ from planos_pedidos.interface.estilo import CORES, aplicar_tema
 from planos_pedidos.interface.icones import icone, repintar
 from planos_pedidos.regras.vendedor import VENDEDORES, vendedor_atual
 
-TITULO = "PLANOS E PEDIDOS"  # provisório: o nome definido ainda não foi escolhido
+TITULO = "CENTRAL DE PEDIDOS"
 
 ABAS = [  # (texto, ícone) — ícones aprovados por foto
     ("Agenda", "calendar_month"),
