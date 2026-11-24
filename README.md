@@ -15,6 +15,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/área-vendas_e_produção-blue?style=flat-square" alt="Área"/>
   <img src="https://img.shields.io/badge/tipo-aplicação_desktop-orange?style=flat-square" alt="Tipo"/>
+  <img src="https://img.shields.io/badge/foco-UX-purple?style=flat-square" alt="Foco"/>
   <img src="https://img.shields.io/badge/testes-83_passando-brightgreen?style=flat-square" alt="Testes"/>
   <img src="https://img.shields.io/badge/idioma-pt--BR-green?style=flat-square" alt="Idioma"/>
   <img src="https://img.shields.io/badge/versão-0.6.1-blue?style=flat-square" alt="Versão"/>
