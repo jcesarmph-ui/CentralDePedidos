@@ -11,7 +11,7 @@ import socket
 from pathlib import Path
 
 # Quem aparece no filtro "Registrado por" quando a pasta de dados não tem a lista
-# `vendedores.txt` (os nomes de verdade ficam só nela, fora do Git).
+# `vendedores.txt` (configurável em cada instalação).
 VENDEDORES = ("ANA", "CARLOS")
 
 # Separadores que aparecem nos logins: ponto, sublinhado, hífen, espaço.
