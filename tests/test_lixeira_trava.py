@@ -105,3 +105,22 @@ def test_tela_filtra_e_avisa_trava(repo, tmp_path):
     j.aba_pedidos.mudou.emit()
     assert j.aba_lixeira.tabela.rowCount() == 1
     j.close()
+
+
+def test_em_estoque_grava_e_le_em_pedido_e_plano(tmp_path):
+    """Campo "Em estoque (kg)": por item no pedido e um no plano."""
+    import datetime
+
+    from planos_pedidos.dados.repositorio import Repositorio
+    from planos_pedidos.regras.pedidos import Item, Pedido
+    from planos_pedidos.regras.planos import Plano
+
+    repo = Repositorio(tmp_path / "b.db")
+    hoje = datetime.date(2026, 11, 24)
+    pid = repo.salvar_pedido(Pedido(data=hoje, cliente="A", numero="1",
+                                    itens=[Item(espessura=1, largura=100, quantidade=500,
+                                                estoque=320, prazo=hoje)]))
+    assert repo.pedido(pid).itens[0].estoque == 320
+    plid = repo.salvar_plano(Plano(data=hoje, cliente="A", descricao="X", quantidade="2000",
+                                   entrega=hoje, estoque=1500))
+    assert repo.plano(plid).estoque == 1500

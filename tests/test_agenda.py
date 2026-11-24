@@ -36,12 +36,12 @@ def test_pedido_vira_uma_etiqueta_por_prazo():
     assert eventos[0].titulo == "1001" and eventos[0].tipo == Tipo.PEDIDO
 
 
-def test_plano_sem_status_com_data_passada_nao_fica_atrasado():
+def test_plano_em_aberto_com_data_passada_fica_atrasado():
     planos = [Plano(cliente="Beta Metais", lote="L1", quantidade="2.000", entrega=d(-1), id=7),
               Plano(cliente="Beta Metais", lote="L2", quantidade="saldo total", entrega=d(0),
                     id=8, critico=True)]
     eventos = montar_eventos([], planos, HOJE)
-    assert [e.situacao for e in eventos] == [Situacao.PASSOU, Situacao.PERTO]
+    assert [e.situacao for e in eventos] == [Situacao.ATRASADO, Situacao.PERTO]
     assert eventos[0].kg == 2000 and eventos[1].kg == 0
     assert eventos[1].critico
 
@@ -63,3 +63,16 @@ def test_semanas_do_mes_comecam_na_segunda():
     assert len(semanas) == 6 and all(len(s) == 7 for s in semanas)
     assert semanas[0][0] == datetime.date(2026, 10, 26)  # segunda antes do dia 1º (domingo)
     assert semanas[0][6] == datetime.date(2026, 11, 1)
+
+
+def test_plano_atendido_fica_entregue():
+    plano = Plano(cliente="Beta", lote="L1", quantidade="2000", entrega=d(-5), id=1,
+                  atendido=True)
+    assert montar_eventos([], [plano], HOJE)[0].situacao == Situacao.ENTREGUE
+
+
+def test_pedido_marcado_atendido_fica_todo_entregue():
+    pedido = _pedido()
+    pedido.atendido = True
+    eventos = montar_eventos([pedido], [], HOJE)
+    assert {e.situacao for e in eventos} == {Situacao.ENTREGUE}

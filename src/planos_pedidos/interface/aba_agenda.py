@@ -54,8 +54,6 @@ def _cores(evento: Evento) -> tuple[str, str]:
         return HOJE
     if evento.situacao == Situacao.ENTREGUE:
         return ENTREGUE
-    if evento.situacao == Situacao.PASSOU:
-        return CORES["campo"], CORES["dica"]
     return CORES["campo"], CORES["texto"]
 
 
