@@ -3,7 +3,7 @@ name = "planos-pedidos"
 dynamic = ["version"]
 description = "Pedidos e planos de corte dos vendedores num programa só"
 requires-python = ">=3.12"
-dependencies = ["PySide6"]
+dependencies = ["PySide6", "openpyxl"]
 
 [build-system]
 requires = ["setuptools>=68"]
